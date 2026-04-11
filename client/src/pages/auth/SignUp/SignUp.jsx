@@ -18,7 +18,7 @@ const SignUp = () => {
     <section className="h-screen bg-secondary/5 flex items-center justify-center px-4 py-6">
       <div className="w-full py-8 max-w-lg bg-card rounded-lg shadow-lg overflow-hidden border border-border">
         <SignUpForm onSuccess={handleSuccess} />
-        <SocialLogin />
+        <SocialLogin onSuccess={handleSuccess} />
       </div>
     </section>
   );

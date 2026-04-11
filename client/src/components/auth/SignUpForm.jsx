@@ -3,15 +3,15 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { validatePassword } from "../../utils/passwordValidators";
 import { uploadImage } from "../../utils/imageUpload";
-import axios from "axios";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
 
 
 const SignUpForm = ({ onSuccess }) => {
+    const axiosPublic = useAxiosPublic();
     const { signUpWithEmailPass, updateUserProfile, setUser } = useAuth();
     const [error, setError] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
-
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -68,15 +68,17 @@ const SignUpForm = ({ onSuccess }) => {
                 photoURL: imageUrl
             })
 
-            const response = await axios.post("http://localhost:5000/users", {
+            const userData = {
                 name: form.name,
                 email: form.email,
                 photoURL: imageUrl,
                 role: "user",
                 createdAt: new Date()
-            })
+            }
 
-            if (response.data?.acknowledged) {
+            if (user) {
+                const response = await axiosPublic.post("/users", userData)
+                console.log("rssssssssssss -> ", response);
                 resetForm();
                 onSuccess();
             }

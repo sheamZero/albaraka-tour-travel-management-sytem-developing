@@ -2,19 +2,76 @@ import { useState } from "react"
 import { FcGoogle } from "react-icons/fc"
 import { FaGithub } from "react-icons/fa"
 
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../../hooks/useAuth";
+import useAxiosPublic from "../../../hooks/useAxiosPublic";
+import { successAction } from "../../../utils/swal";
 
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
+  const { signInWithGoogle, setUser, signInWithEmailPass } = useAuth();
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSignIn = (e) => {
-    e.preventDefault()
-    console.log("Email:", email)
-    console.log("Password:", password)
+  // console.log(location)
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const result = await signInWithEmailPass(email, password);
+      setUser(result.user);
+
+      if (result.user?.email) {
+        successAction("Logged in successfully!");
+        navigate(location.state?.from || "/");
+      }
+
+    } catch (err) {
+      console.log("Login error:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // google login
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      setUser(result.user);
+
+      const userData = {
+        name: result.user?.displayName,
+        email: result.user?.email,
+        photoURL: result.user?.photoURL,
+        role: "user",
+        createdAt: new Date()
+      };
+      console.log("Google Sign In Response -->>", result);
+      console.log("User Data -->>", userData);
+
+      if (result.user?.email) {
+        const response = await axiosPublic.post("/google", userData);
+        console.log("Server Response google -->>", response.data);
+
+        successAction("Logged in successfully!")
+        navigate(location.state?.from || "/")
+      }
+
+    } catch (error) {
+      console.error("Google Sign In Error -->>", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -44,7 +101,7 @@ const SignIn = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-foreground placeholder:text-muted-foreground"
               />
-              
+
             </div>
 
             {/* Password */}
@@ -80,10 +137,11 @@ const SignIn = () => {
             </div>
 
             <button
+              disabled={loading}
               type="submit"
               className="w-full py-2 px-4 bg-primary text-primary-foreground font-medium rounded-md hover:bg-primary/90 transition"
             >
-              Sign in
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>
@@ -109,7 +167,11 @@ const SignIn = () => {
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <button className="w-full py-2 px-4 border border-input rounded-md bg-background text-foreground font-medium hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition flex items-center justify-center gap-2">
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full py-2 px-4 border border-input rounded-md bg-background text-foreground font-medium hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition flex items-center justify-center gap-2"
+            disabled={loading}
+          >
             <FcGoogle className="w-5 h-5" />
             <span>Login with Google</span>
           </button>

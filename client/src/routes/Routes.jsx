@@ -8,6 +8,9 @@ import Destinations from "../pages/Destinations/Destinations";
 import AboutUs from "../pages/AboutUs/AboutUs";
 import ContactUs from "../pages/ContactUs/ContactUs";
 import PackageDetails from "../pages/PackageDetails/PackageDetails";
+import DashboardLayout from "../layouts/DashboardLayout";
+import PrivateRoute from "./PrivateRoute";
+import UserHome from "../pages/Dashboard/UserDashboard/UserHome/UserHome";
 
 const router = createBrowserRouter([
     {
@@ -20,7 +23,11 @@ const router = createBrowserRouter([
             },
             {
                 path: "/packages",
-                element: <Packages />
+                element: (
+                    <PrivateRoute>
+                        <Packages />
+                    </PrivateRoute>
+                )
             },
             {
                 path: "/packageDetails/:id",
@@ -46,6 +53,21 @@ const router = createBrowserRouter([
                 path: "/signup",
                 element: <SignUp />
             }
+        ]
+    },
+
+    {
+        path: "/dashboard",
+        element: (
+            <PrivateRoute>
+                <DashboardLayout />
+            </PrivateRoute>
+        ),
+        children: [
+            {
+                index: true,
+                element: <UserHome />
+            },
         ]
     }
 ]);

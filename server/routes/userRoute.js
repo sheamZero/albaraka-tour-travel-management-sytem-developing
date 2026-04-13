@@ -1,8 +1,8 @@
 import express from "express";
-import createUser from "../controllers/userController.js";
-
+import  { createUser, googleLogin } from '../controllers/userController.js'
 const route = express.Router();
 
 route.post("/users", createUser);
+route.post("/google",googleLogin);
 
 export default route;

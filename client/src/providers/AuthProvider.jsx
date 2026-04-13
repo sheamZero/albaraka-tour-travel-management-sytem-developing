@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import auth from "../firebase/firebase.config";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, updateProfile, } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile, } from "firebase/auth";
 import { AuthContext } from "../context/authContext";
+import axios from 'axios';
 
 const googleAuthProvider = new GoogleAuthProvider();
 
@@ -23,15 +24,25 @@ const AuthProvider = ({ children }) => {
         });
     };
 
+    const signInWithEmailPass = (email, pass) => {
+        setIsLoading(true);
+        return signInWithEmailAndPassword(auth, email, pass);
+    }
+
     const signInWithGoogle = () => {
         setIsLoading(true);
         return signInWithPopup(auth, googleAuthProvider);
     }
 
-
-const signOutUser=()=>{
-    signOut(auth);
-}
+    const signOutUser = async () => {
+        setIsLoading(true);
+        localStorage.removeItem("access-token");
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/logout`, {
+            withCredentials: true,
+        });
+        console.log("ologout",data);
+        signOut(auth);
+    };
 
 
     const auth_info = {
@@ -41,7 +52,8 @@ const signOutUser=()=>{
         signUpWithEmailPass,
         updateUserProfile,
         signOutUser,
-        signInWithGoogle
+        signInWithGoogle,
+        signInWithEmailPass
     }
 
     useEffect(() => {
@@ -49,6 +61,27 @@ const signOutUser=()=>{
             setUser(currentUser);
             setIsLoading(false);
             console.log("User -->>", currentUser);
+
+            if (currentUser?.email) {
+                const token_user = {
+                    email: currentUser?.email
+                }
+                // generate token
+                axios.post(`${import.meta.env.VITE_API_BASE_URL}/jwt`, token_user, {
+                    withCredentials: true
+                })
+                    .then(res => {
+                        if (res.data?.token) {
+                            localStorage.setItem("access-token", res.data.token);
+                        }
+                        else {
+                            localStorage.removeItem("access-token");
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+            }
 
         })
         return () => unSubscribe();

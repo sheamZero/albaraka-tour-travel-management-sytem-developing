@@ -1,7 +1,7 @@
 import { Menu, X, User, Search, Globe } from "lucide-react";
 import { useState } from "react";
 import Container from "./Container";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import {
     BadgeCheckIcon,
@@ -28,7 +28,7 @@ import {
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+const navigate = useNavigate();
     const { user, signOutUser } = useAuth();
     console.log("from the navbar", user)
 
@@ -108,7 +108,9 @@ const Navbar = () => {
                                         <DropdownMenuLabel className='text-center text-base font-semibold text-black'>My Account</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuGroup>
-                                            <DropdownMenuItem className="hover:bg-primary/10 text-base">
+                                            <DropdownMenuItem 
+                                            onClick={()=> navigate("/dashboard")}
+                                            className="hover:bg-primary/10 text-base">
                                                 <BadgeCheckIcon />
                                                 Account
                                             </DropdownMenuItem>

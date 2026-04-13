@@ -77,7 +77,7 @@ const SignUpForm = ({ onSuccess }) => {
             }
 
             if (user) {
-                const response = await axiosPublic.post("/users", userData)
+                const response = await axiosPublic.post("/users/create", userData)
                 console.log("rssssssssssss -> ", response);
                 resetForm();
                 onSuccess();

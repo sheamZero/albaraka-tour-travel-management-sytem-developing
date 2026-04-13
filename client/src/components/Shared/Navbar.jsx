@@ -24,13 +24,20 @@ import {
     DropdownMenuTrigger,
     DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
+import useAdmin from "../../hooks/useAdmin";
 // import logo from '../../assets/images/logo.png';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-const navigate = useNavigate();
+    const navigate = useNavigate();
     const { user, signOutUser } = useAuth();
-    console.log("from the navbar", user)
+    const { isAdmin, isAdminLoading } = useAdmin();
+    
+const dashboardPath = user
+  ? isAdmin
+    ? "/dashboard/admin"
+    : "/dashboard/user"
+  : "/signin";
 
     const menuItems = [
         { name: "Home", link: "/" },
@@ -39,6 +46,8 @@ const navigate = useNavigate();
         { name: "About Us", link: "/about" },
         { name: "Contact", link: "/contact" },
     ];
+
+    if (isAdminLoading) return <p>loading.................</p>
 
     return (
         <div className="sticky top-0 w-full z-50 bg-background/95 backdrop-blur-sm shadow-sm border-b border-border">
@@ -108,11 +117,11 @@ const navigate = useNavigate();
                                         <DropdownMenuLabel className='text-center text-base font-semibold text-black'>My Account</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuGroup>
-                                            <DropdownMenuItem 
-                                            onClick={()=> navigate("/dashboard")}
-                                            className="hover:bg-primary/10 text-base">
+                                            <DropdownMenuItem
+                                                onClick={() => navigate(dashboardPath)}
+                                                className="hover:bg-primary/10 text-base">
                                                 <BadgeCheckIcon />
-                                                Account
+                                                Dashboard
                                             </DropdownMenuItem>
                                             <DropdownMenuItem className="hover:bg-primary/10 text-base">
                                                 <CreditCardIcon />

@@ -12,7 +12,7 @@ export const generateToken = async (req, res) => {
             { expiresIn: "7d" }
         )
 
-        console.log("token", token)
+        // console.log("token", token)
 
         res
             .cookie("token", token, cookieOptions)

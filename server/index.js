@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 
 import route from "./routes/userRoute.js";
 import authRouter from "./routes/authRoute.js";
+import adminRoute from "./routes/adminRoute.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -44,7 +45,11 @@ app.get("/", (req, res) => {
 });
 
 // create user in database
-app.use(route);
+app.use("/users",route);
 app.use(route);
 // generate token
-app.use(authRouter)
+app.use(authRouter);
+
+
+// admin route
+app.use("/users", adminRoute)

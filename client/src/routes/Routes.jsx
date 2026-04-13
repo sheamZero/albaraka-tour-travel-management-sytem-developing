@@ -11,6 +11,11 @@ import PackageDetails from "../pages/PackageDetails/PackageDetails";
 import DashboardLayout from "../layouts/DashboardLayout";
 import PrivateRoute from "./PrivateRoute";
 import UserHome from "../pages/Dashboard/UserDashboard/UserHome/UserHome";
+import MyBookings from "../pages/Dashboard/UserDashboard/MyBookings/MyBookings";
+import PaymentHistory from "../pages/Dashboard/UserDashboard/PaymentHistory/PaymentHistory";
+import AdminHome from "../pages/Dashboard/AdminDashboard/AdminHome/AdminHome";
+import AddPackage from "../pages/Dashboard/AdminDashboard/AddPackage/AddPackage";
+import AllBookings from "../pages/Dashboard/AdminDashboard/AllBookings/AllBookings";
 
 const router = createBrowserRouter([
     {
@@ -64,10 +69,45 @@ const router = createBrowserRouter([
             </PrivateRoute>
         ),
         children: [
+
+            // USER DASHBOARD
             {
-                index: true,
-                element: <UserHome />
+                path: "user",
+                children: [
+                    {
+                        index: true,
+                        element: <UserHome />
+                    },
+                    {
+                        path: "my-bookings",
+                        element: <MyBookings />
+                    },
+                    {
+                        path: "payment-history",
+                        element: <PaymentHistory />
+                    }
+                ]
             },
+
+            // ADMIN DASHBOARD
+            {
+                path: "admin",
+                children: [
+                    {
+                        index: true,
+                        element: <AdminHome />
+                    },
+                    {
+                        path: "add-package",
+                        element: <AddPackage />
+                    },
+                    {
+                        path: "all-bookings",
+                        element: <AllBookings />
+                    }
+                ]
+            }
+
         ]
     }
 ]);

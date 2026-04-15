@@ -25,7 +25,7 @@ const SocialLogin = ({ onSuccess }) => {
         console.log("User Data -->>", userData);
 
         if (result.user?.email) {
-            const response = await axiosPublic.post("/users", userData);
+            const response = await axiosPublic.post("/users/google", userData);
             console.log("Server Response google -->>", response.data);
             onSuccess();
 

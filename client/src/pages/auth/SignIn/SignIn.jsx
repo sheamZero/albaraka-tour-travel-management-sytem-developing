@@ -60,7 +60,7 @@ const SignIn = () => {
       console.log("User Data -->>", userData);
 
       if (result.user?.email) {
-        const response = await axiosPublic.post("/google", userData);
+        const response = await axiosPublic.post("/users/google", userData);
         console.log("Server Response google -->>", response.data);
 
         successAction("Logged in successfully!")

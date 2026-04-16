@@ -7,7 +7,7 @@ import axios from 'axios';
 const googleAuthProvider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState(null);
 
     // sign up user
@@ -37,10 +37,12 @@ const AuthProvider = ({ children }) => {
     const signOutUser = async () => {
         setIsLoading(true);
         localStorage.removeItem("access-token");
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/logout`, {
+
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/logout`, {
             withCredentials: true,
         });
-        console.log("ologout",data);
+        console.log("logout", response);
+
         signOut(auth);
     };
 
@@ -67,7 +69,7 @@ const AuthProvider = ({ children }) => {
                     email: currentUser?.email
                 }
                 // generate token
-                axios.post(`${import.meta.env.VITE_API_BASE_URL}/jwt`, token_user, {
+                axios.post(`${import.meta.env.VITE_API_BASE_URL}/generate-token`, token_user, {
                     withCredentials: true
                 })
                     .then(res => {
@@ -76,6 +78,10 @@ const AuthProvider = ({ children }) => {
                         }
                         else {
                             localStorage.removeItem("access-token");
+                            const response =  axios.get(`${import.meta.env.VITE_API_BASE_URL}/logout`, {
+                                withCredentials: true,
+                            });
+                            console.log("logout", response);
                         }
                     })
                     .catch(err => {

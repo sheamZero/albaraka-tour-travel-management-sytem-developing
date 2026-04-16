@@ -16,6 +16,7 @@ import PaymentHistory from "../pages/Dashboard/UserDashboard/PaymentHistory/Paym
 import AdminHome from "../pages/Dashboard/AdminDashboard/AdminHome/AdminHome";
 import AddPackage from "../pages/Dashboard/AdminDashboard/AddPackage/AddPackage";
 import AllBookings from "../pages/Dashboard/AdminDashboard/AllBookings/AllBookings";
+import ManageUsers from "../pages/Dashboard/AdminDashboard/ManageUsers/ManageUsers";
 
 const router = createBrowserRouter([
     {
@@ -100,6 +101,10 @@ const router = createBrowserRouter([
                     {
                         path: "add-package",
                         element: <AddPackage />
+                    },
+                    {
+                        path: "manage-users",
+                        element: <ManageUsers />
                     },
                     {
                         path: "all-bookings",

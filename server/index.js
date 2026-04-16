@@ -3,7 +3,10 @@ const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion,  } = require("mongodb");
+const { verifyToken } = require("./middlewares/verifyToken");
+const { verifyUserEmail } = require("./middlewares/verifyUserEmail");
+const { verifyAdmin } = require("./middlewares/verifyAdmin");
 
 const port = process.env.PORT || 9000;
 const app = express();
@@ -40,13 +43,62 @@ async function run() {
     try {
         await client.connect();
         console.log("Connected to MongoDB");
+        const database = client.db("tourTravel");
+        const userCollections = database.collection("users");
+        const packageCollections = database.collection("packages");
 
-        const userCollections = client.db("tourTravel").collection("users");
+        // jwt token-------------------------
+        app.post("/generate-token", async (req, res) => {
+            const user = req.body;
+            console.log("hitted ", user);
+
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: "365d",
+            });
+            console.log("user and token --> ", token);
+
+
+            res.cookie("token", token, cookieOptions).send({ success: true, token });
+        });
+
+        app.get("/logout", (req, res) => {
+            console.log("hitted logout")
+          res
+            .clearCookie("token", { ...cookieOptions, maxAge: 0 })
+            .send({ success: true });
+        });
+
+
+        // packages related api----------------------------------------------
+       app.post("/package", verifyToken, verifyUserEmail, verifyAdmin(userCollections), async (req, res) => {
+  try {
+
+    const packageData = req.body;
+
+    console.log("Received package:", packageData);
+
+    // Example DB insert
+    const result = await packageCollections.insertOne(packageData);
+
+    res.status(201).send({
+      success: true,
+      insertedId: result.insertedId
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 
         // users related api----------------------------------------------
-        app.get("/users", async (req, res) => {
+        app.get("/users",verifyToken, async (req, res) => {
             const resutl = await userCollections.find().toArray()
-            res.send(resutl)
+            res.send(resutl);
         })
 
         app.post("/users/create", async (req, res) => {

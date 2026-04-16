@@ -1,9 +1,11 @@
-import { Globe,X, Home, Package, MapPin, Info, Phone, LayoutDashboard, BookOpen, Heart, User, Settings, Calendar, CreditCard, Star, LogOut, User2, Package2 } from "lucide-react";
+import { Globe, X, Home, Package, MapPin, Info, Phone, LayoutDashboard, BookOpen, Heart, User, Settings, Calendar, CreditCard, Star, LogOut, User2, Package2 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import useAdmin from "../../../hooks/useAdmin";
+import { useAuth } from "../../../hooks/useAuth";
 
 const DashboardSidebar = ({ onClose }) => {
   const { isAdmin, isAdminLoading } = useAdmin();
+  const { signOutUser } = useAuth();
 
   const userMenuItems = [
     { name: "User Home", link: "/dashboard/user", icon: Home },
@@ -16,8 +18,9 @@ const DashboardSidebar = ({ onClose }) => {
   const adminMenuItems = [
     { name: "Admin Home", link: "/dashboard/admin", icon: LayoutDashboard },
     { name: "Add Package", link: "/dashboard/admin/add-package", icon: Package2 },
-    { name: "Manage Users", link: "/dashboard/admin/users", icon: User2 },
+
     { name: "All Bookings", link: "/dashboard/admin/all-bookings", icon: BookOpen },
+    { name: "Manage Users", link: "/dashboard/admin/manage-users", icon: User2 },
   ];
 
   const publicMenuItems = [
@@ -63,10 +66,9 @@ const DashboardSidebar = ({ onClose }) => {
             onClick={onClose}   // ✅ CLOSE SIDEBAR ON CLICK
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-lg transition-all
-              ${
-                isActive
-                  ? "bg-primary text-white"
-                  : "text-gray-700 hover:bg-primary/10 hover:text-primary"
+              ${isActive
+                ? "bg-primary text-white"
+                : "text-gray-700 hover:bg-primary/10 hover:text-primary"
               }`
             }
           >
@@ -88,10 +90,9 @@ const DashboardSidebar = ({ onClose }) => {
             onClick={onClose}   // ✅ ALSO CLOSE HERE
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-lg transition-all
-              ${
-                isActive
-                  ? "bg-primary text-white"
-                  : "text-gray-700 hover:bg-primary/10 hover:text-primary"
+              ${isActive
+                ? "bg-primary text-white"
+                : "text-gray-700 hover:bg-primary/10 hover:text-primary"
               }`
             }
           >
@@ -103,7 +104,10 @@ const DashboardSidebar = ({ onClose }) => {
 
       {/* LOGOUT */}
       <div className="p-4 mt-auto border-t">
-        <button className="flex items-center gap-3 justify-center w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-full">
+        <button
+          onClick={signOutUser}
+          className="flex items-center gap-3 justify-center w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-full"
+        >
           <LogOut size={18} />
           Logout
         </button>

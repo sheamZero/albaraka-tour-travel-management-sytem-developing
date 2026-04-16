@@ -7,6 +7,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
 import { successAction } from "../../../utils/swal";
+import { useEffect } from "react";
+
 
 
 const SignIn = () => {
@@ -14,12 +16,13 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
-  const { signInWithGoogle, setUser, signInWithEmailPass } = useAuth();
+  const { signInWithGoogle, user, setUser, signInWithEmailPass } = useAuth();
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // console.log(location)
+
+  console.log("from sign in ", location)
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ const SignIn = () => {
 
       if (result.user?.email) {
         successAction("Logged in successfully!");
-        navigate(location.state?.from || "/");
+        navigate(location.state?.from?.pathname || "/", { replace: true });
       }
 
     } catch (err) {
@@ -64,7 +67,7 @@ const SignIn = () => {
         console.log("Server Response google -->>", response.data);
 
         successAction("Logged in successfully!")
-        navigate(location.state?.from || "/")
+        navigate(location.state?.from?.pathname || "/", { replace: true });
       }
 
     } catch (error) {
@@ -73,6 +76,12 @@ const SignIn = () => {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (user) {
+      navigate(location.state?.from?.pathname || "/", { replace: true });
+    }
+  }, [user, navigate, location]);
 
   return (
     <section className="h-screen bg-secondary/5 flex items-center justify-center px-4">

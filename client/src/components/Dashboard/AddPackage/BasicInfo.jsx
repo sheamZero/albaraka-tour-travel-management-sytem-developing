@@ -75,15 +75,15 @@ const BasicInfo = ({ register, errors, watch, setValue }) => {
                             )}
                         </div>
 
-                        {/* Duration */}
+                        {/* Category */}
                         <div>
                             <label className="block text-base font-medium text-text mb-1">
-                                Duration
+                                Category
                             </label>
                             <div className="relative">
                                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
-                                    {...register("duration")}
+                                    {...register("category")}
                                     placeholder="e.g., 7 Days / 6 Nights"
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />

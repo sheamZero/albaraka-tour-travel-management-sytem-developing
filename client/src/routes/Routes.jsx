@@ -17,6 +17,7 @@ import AdminHome from "../pages/Dashboard/AdminDashboard/AdminHome/AdminHome";
 import AddPackage from "../pages/Dashboard/AdminDashboard/AddPackage/AddPackage";
 import AllBookings from "../pages/Dashboard/AdminDashboard/AllBookings/AllBookings";
 import ManageUsers from "../pages/Dashboard/AdminDashboard/ManageUsers/ManageUsers";
+import AdminRoute from "./AdminRoute";
 
 const router = createBrowserRouter([
     {
@@ -93,22 +94,39 @@ const router = createBrowserRouter([
             // ADMIN DASHBOARD
             {
                 path: "admin",
+
                 children: [
                     {
-                        index: true,
-                        element: <AdminHome />
+                        path: "",
+                        element: (
+                            <AdminRoute>
+                                <AdminHome />
+                            </AdminRoute>
+                        )
                     },
                     {
                         path: "add-package",
-                        element: <AddPackage />
+                        element: (
+                            <AdminRoute>
+                                <AddPackage />
+                            </AdminRoute>
+                        )
                     },
                     {
                         path: "manage-users",
-                        element: <ManageUsers />
+                        element: (
+                            <AdminRoute>
+                                <ManageUsers />
+                            </AdminRoute>
+                        )
                     },
                     {
                         path: "all-bookings",
-                        element: <AllBookings />
+                        element: (
+                            <AdminRoute>
+                                <AllBookings />
+                            </AdminRoute>
+                        )
                     }
                 ]
             }
@@ -118,3 +136,14 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
+
+
+
+
+
+
+
+
+
+
+

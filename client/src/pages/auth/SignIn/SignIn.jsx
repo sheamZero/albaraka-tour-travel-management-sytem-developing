@@ -6,8 +6,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import useAxiosPublic from "../../../hooks/useAxiosPublic";
-import { successAction } from "../../../utils/swal";
+import { errorAction, successAction } from "../../../utils/swal";
 import { useEffect } from "react";
+import generateToken from "../../../utils/generateToken";
 
 
 
@@ -16,13 +17,11 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
-  const { signInWithGoogle, user, setUser, signInWithEmailPass } = useAuth();
+  const { signInWithGoogle, user, signInWithEmailPass } = useAuth();
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
   const location = useLocation();
 
-
-  console.log("from sign in ", location)
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -31,13 +30,32 @@ const SignIn = () => {
       setLoading(true);
 
       const result = await signInWithEmailPass(email, password);
-      setUser(result.user);
 
-      if (result.user?.email) {
+      if (result?.user?.email) {
+        const userEmail = result.user.email;
+        console.log("result and email", result, email)
+
+        await generateToken(userEmail);
+
+        // get role
+        const { data } = await axiosPublic.post("/role", { email: userEmail })
+        console.log(data.role);
+
         successAction("Logged in successfully!");
-        navigate(location.state?.from?.pathname || "/", { replace: true });
-      }
 
+        // const redirectPath = location.state?.from?.pathname || "/";
+
+        let redirectPath;
+        if (data.role === "admin") {
+          redirectPath = "/dashboard/admin";
+        } else {
+          redirectPath = "/dashboard/user";
+        }
+        navigate(redirectPath, { replace: true, state: {} });
+
+        console.log("redirect apth", redirectPath)
+
+      }
     } catch (err) {
       console.log("Login error:", err.message);
     } finally {
@@ -50,32 +68,53 @@ const SignIn = () => {
     setLoading(true);
     try {
       const result = await signInWithGoogle();
-      setUser(result.user);
 
-      const userData = {
-        name: result.user?.displayName,
-        email: result.user?.email,
-        photoURL: result.user?.photoURL,
-        role: "user",
-        createdAt: new Date()
-      };
-      console.log("Google Sign In Response -->>", result);
-      console.log("User Data -->>", userData);
+      if (result?.user?.email) {
+        const userEmail = result.user.email;
+        console.log("Google Sign In Response -->>", result);
 
-      if (result.user?.email) {
+        // Prepare user data for database
+        const userData = {
+          name: result.user?.displayName,
+          email: userEmail,
+          photoURL: result.user?.photoURL,
+          role: "user",
+          createdAt: new Date()
+        };
+
+        console.log("User Data -->>", userData);
+
+        // Send user data to server
         const response = await axiosPublic.post("/users/google", userData);
         console.log("Server Response google -->>", response.data);
 
-        successAction("Logged in successfully!")
-        navigate(location.state?.from?.pathname || "/", { replace: true });
-      }
+        // Generate token (similar to email login)
+        await generateToken(userEmail);
 
+        // Get role
+        const { data } = await axiosPublic.post("/role", { email: userEmail });
+        console.log(data.role);
+
+        successAction("Logged in successfully!");
+
+        // Set redirect path based on role
+        let redirectPath;
+        if (data.role === "admin") {
+          redirectPath = "/dashboard/admin";
+        } else {
+          redirectPath = "/dashboard/user";
+        }
+
+        navigate(redirectPath, { replace: true, state: {} });
+        console.log("redirect path", redirectPath);
+      }
     } catch (error) {
       console.error("Google Sign In Error -->>", error);
+      errorAction(error.message || "Google login failed!");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (user) {

@@ -5,9 +5,10 @@ import ItineraryCard from "../../../../components/Dashboard/AddPackage/Itinerary
 import AvailableDates from "../../../../components/Dashboard/AddPackage/AvailableDates";
 import useAxiosSecure from "../../../../hooks/useAxiosSecure";
 import { uploadImage } from "../../../../utils/imageUpload";
+import { successAction } from "../../../../utils/swal";
 
 const AddPackage = () => {
-const axiosSecure = useAxiosSecure();
+  const axiosSecure = useAxiosSecure();
   const {
     register,
     handleSubmit,
@@ -31,23 +32,26 @@ const axiosSecure = useAxiosSecure();
     },
   });
 
-  const onSubmit = async(data) => {
+  const onSubmit = async (data) => {
     console.log("Form Data:", data);
     const imageFile = data.image[0];
-    
+
     const imageUrl = await uploadImage(imageFile);
 
     const packageData = {
-  ...data,
-  image: imageUrl,
-  included: data.included.map(i => i.value),
-  excluded: data.excluded.map(e => e.value)
-};
+      ...data,
+      image: imageUrl,
+      included: data.included.map(i => i.value),
+      excluded: data.excluded.map(e => e.value)
+    };
 
     console.log("final data ", packageData);
 
     const response = await axiosSecure.post("/package", packageData)
     console.log("package data response", response);
+    if (response.data?.insertedId) {
+      successAction("Package Upload Successfully!")
+    }
   };
 
   return (
@@ -108,9 +112,9 @@ const axiosSecure = useAxiosSecure();
                   Adding...
                 </>
               ) : */}
-               
-                "Add Package"
-              
+
+              "Add Package"
+
             </button>
 
           </div>

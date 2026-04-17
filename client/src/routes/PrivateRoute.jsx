@@ -6,7 +6,6 @@ const PrivateRoute = ({ children }) => {
     const { user, isLoading } = useAuth();
     const location = useLocation();
 
-    // IMPORTANT: wait for Firebase
     if (isLoading) {
         return <div>Loading...</div>;
     }

@@ -7,10 +7,12 @@ export const verifyAdmin = (userCollections) => {
 
       const user = await userCollections.findOne({ email });
 
+      console.log("from admin hookss", email, user)
+
       if (!user || user.role !== "admin") {
         return res.status(403).send("Forbidden: admin access only");
       }
-
+      
       next();
 
     } catch (err) {

@@ -3,7 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion,  } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId, } = require("mongodb");
 const { verifyToken } = require("./middlewares/verifyToken");
 const { verifyUserEmail } = require("./middlewares/verifyUserEmail");
 const { verifyAdmin } = require("./middlewares/verifyAdmin");
@@ -47,56 +47,99 @@ async function run() {
         const userCollections = database.collection("users");
         const packageCollections = database.collection("packages");
 
+        app.post("/role", async (req, res) => {
+            try {
+                const { email } = req.body;  // ✅ সঠিক way: destructuring
+
+                console.log("Received email:", email);
+
+                const result = await userCollections.findOne({ email });
+
+                console.log("Found user:", result);
+
+                if (!result) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "User not found"
+                    });
+                }
+
+                const userRole = {
+                    role: result.role,
+                    email: result.email
+                };
+
+                res.send(userRole);
+
+            } catch (error) {
+                console.error("Error in /role endpoint:", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Internal server error"
+                });
+            }
+        });
+
         // jwt token-------------------------
         app.post("/generate-token", async (req, res) => {
             const user = req.body;
-            console.log("hitted ", user);
+            // console.log("hitted ", user);
 
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: "365d",
             });
-            console.log("user and token --> ", token);
+            // console.log("user and token --> ", token);
 
 
             res.cookie("token", token, cookieOptions).send({ success: true, token });
         });
 
         app.get("/logout", (req, res) => {
-            console.log("hitted logout")
-          res
-            .clearCookie("token", { ...cookieOptions, maxAge: 0 })
-            .send({ success: true });
+            // console.log("hitted logout")
+            res
+                .clearCookie("token", { ...cookieOptions, maxAge: 0 })
+                .send({ success: true });
         });
 
 
         // packages related api----------------------------------------------
-       app.post("/package", verifyToken, verifyUserEmail, verifyAdmin(userCollections), async (req, res) => {
-  try {
+        app.get("/packages", verifyToken, verifyUserEmail, async (req, res) => {
+            try {
+                const result = await packageCollections.find().toArray();
+                res.send(result);
+                console.log("packages", result)
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
 
-    const packageData = req.body;
+        })
 
-    console.log("Received package:", packageData);
+        app.post("/package", verifyToken, verifyUserEmail, verifyAdmin(userCollections), async (req, res) => {
+            try {
+                const packageData = req.body;
 
-    // Example DB insert
-    const result = await packageCollections.insertOne(packageData);
+                // console.log("Received package:", packageData);
 
-    res.status(201).send({
-      success: true,
-      insertedId: result.insertedId
-    });
+                // Example DB insert
+                const result = await packageCollections.insertOne(packageData);
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({
-      success: false,
-      message: error.message
-    });
-  }
-});
+                res.status(201).send({
+                    success: true,
+                    insertedId: result.insertedId
+                });
+
+            } catch (error) {
+                console.error(error);
+                res.status(500).send({
+                    success: false,
+                    message: error.message
+                });
+            }
+        });
 
 
         // users related api----------------------------------------------
-        app.get("/users",verifyToken, async (req, res) => {
+        app.get("/users", verifyToken, async (req, res) => {
             const resutl = await userCollections.find().toArray()
             res.send(resutl);
         })
@@ -181,6 +224,73 @@ async function run() {
             }
         });
 
+        app.patch("/users/admin/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                const id = req.params.id;
+
+                console.log("iddddd ", id)
+
+                const filter = { _id: new ObjectId(id) };
+                const updateDoc = {
+                    $set: { role: "admin" }
+                };
+
+                const result = await userCollections.updateOne(filter, updateDoc);
+
+                res.send(result);
+            });
+
+        app.patch("/users/user/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                const id = req.params.id;
+
+                // console.log("iddddd ", id)
+
+                const filter = { _id: new ObjectId(id) };
+                const updateDoc = {
+                    $set: { role: "user" }
+                };
+
+                const result = await userCollections.updateOne(filter, updateDoc);
+
+                res.send(result);
+            });
+
+        app.delete("/users/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                const id = req.params.id;
+
+                console.log("user id ", id)
+                const query = { _id: new ObjectId(id) };
+
+                const userToDelete = await userCollections.findOne(query);
+
+                if (!userToDelete) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "User not found"
+                    });
+                }
+
+                // Prevent deleting admin accounts
+                if (userToDelete.role === "admin") {
+                    return res.status(403).json({
+                        success: false,
+                        message: "Cannot delete admin accounts"
+                    });
+                }
+                const result = await userCollections.deleteOne(query);
+                res.send(result);
+            });
 
         // api for isAdmin hooks-----------------------------
         app.get("/users/admin/:email", async (req, res) => {

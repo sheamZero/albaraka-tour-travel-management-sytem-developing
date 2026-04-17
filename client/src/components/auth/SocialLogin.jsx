@@ -4,6 +4,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaFacebook, FaTwitter } from "react-icons/fa";
 import { useAuth } from "../../hooks/useAuth";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import generateToken from "../../utils/generateToken";
 
 
 const SocialLogin = ({ onSuccess }) => {
@@ -27,6 +28,10 @@ const SocialLogin = ({ onSuccess }) => {
         if (result.user?.email) {
             const response = await axiosPublic.post("/users/google", userData);
             console.log("Server Response google -->>", response.data);
+
+            // genereate token
+            await generateToken(result.user?.email);
+            
             onSuccess();
 
         }

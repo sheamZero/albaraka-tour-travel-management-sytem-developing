@@ -8,7 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import {  Clock, Star } from "lucide-react";
+import { Clock, Star } from "lucide-react";
 import { FaLocationArrow } from "react-icons/fa";
 import Itinerary from "../../components/PackageDetails/Itinerary/Itinerary";
 import IncludedExcluded from "../../components/PackageDetails/IncludedExcluded/IncludedExcluded";
@@ -64,7 +64,7 @@ const PackageDetails = () => {
     <section className="py-6">
       <Container>
         {/* breadcrumb list */}
-        <div className="pb-4">
+        <div className="pb-4 relative overflow-hidden">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -162,6 +162,19 @@ const PackageDetails = () => {
         </div>
 
       </Container>
+
+      {/* STICKY BOOKING BUTTON - Fixed at top right on all devices */}
+      <div className="fixed top-12 right-0 lg:right-16 z-50 p-4">
+        <div className="bg-white shadow-lg rounded-full px-6 py-3 flex items-center gap-4 border border-gray-100">
+          <div>
+            <span className="text-2xl font-bold text-primary">${singlePackage.price}</span>
+            <span className="text-gray-500 text-sm ml-1">/person</span>
+          </div>
+          <button className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition shadow-md">
+            Book Now
+          </button>
+        </div>
+      </div>
     </section>
   )
 }

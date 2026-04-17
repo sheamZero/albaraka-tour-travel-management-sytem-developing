@@ -2,8 +2,24 @@ import { MapPin, Clock, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import Rating from "react-rating";
 import { Link } from "react-router-dom";
+import { parseISO, differenceInCalendarDays } from "date-fns";
 
 const PackageCard = ({ item, index }) => {
+    console.log("packages items --> ", item);
+
+    const getDuration = (startDate, endDate) => {
+        if (!startDate || !endDate) return "";
+
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
+
+        const days = differenceInCalendarDays(end, start) + 1;
+
+        return `${days}/${days - 1}days`;
+    };
+
+    const duration = getDuration(item.startDate, item.endDate);
+
     return (
         <motion.div
             key={item.id}
@@ -62,14 +78,14 @@ const PackageCard = ({ item, index }) => {
                     </div>
 
                     {/* Location & Duration */}
-                    <div className="flex items-center gap-3 text-sm text-text my-2 mt-1">
+                    <div className="flex items-center justify-between gap-3 text-sm text-text my-2 mt-1">
                         <div className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
                             <span>{item.location}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
-                            <span>{item.duration}</span>
+                            <span>{duration}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <DollarSign className="w-3.5 h-3.5" />

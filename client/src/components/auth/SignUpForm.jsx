@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { validatePassword } from "../../utils/passwordValidators";
 import { uploadImage } from "../../utils/imageUpload";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
+import generateToken from "../../utils/generateToken";
 
 
 const SignUpForm = ({ onSuccess }) => {
@@ -79,6 +80,10 @@ const SignUpForm = ({ onSuccess }) => {
             if (user) {
                 const response = await axiosPublic.post("/users/create", userData)
                 console.log("rssssssssssss -> ", response);
+
+                // generate token
+                await generateToken(user?.email);
+
                 resetForm();
                 onSuccess();
             }

@@ -2,21 +2,12 @@ import { MapPin, Clock, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import Rating from "react-rating";
 import { Link } from "react-router-dom";
-import { parseISO, differenceInCalendarDays } from "date-fns";
+import getDuration from "../../utils/getTourDuration";
 
 const PackageCard = ({ item, index }) => {
     console.log("packages items --> ", item);
 
-    const getDuration = (startDate, endDate) => {
-        if (!startDate || !endDate) return "";
-
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
-
-        const days = differenceInCalendarDays(end, start) + 1;
-
-        return `${days}/${days - 1}days`;
-    };
+   
 
     const duration = getDuration(item.startDate, item.endDate);
 
@@ -87,10 +78,10 @@ const PackageCard = ({ item, index }) => {
                             <Clock className="w-3.5 h-3.5" />
                             <span>{duration}</span>
                         </div>
-                        <div className="flex items-center gap-1">
+                        {/* <div className="flex items-center gap-1">
                             <DollarSign className="w-3.5 h-3.5" />
                             <span>${item.price}/person</span>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Description - This will grow to push button down */}
@@ -117,7 +108,7 @@ const PackageCard = ({ item, index }) => {
                     </div>
 
                     <div className="mt-auto">
-                        <Link to={`/packageDetails/${item.id}`}>
+                        <Link to={`/packageDetails/${item._id}`}>
                             <button
                                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-2.5 font-semibold transition-all hover:scale-105 active:scale-95"
                             >

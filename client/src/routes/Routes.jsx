@@ -31,9 +31,7 @@ const router = createBrowserRouter([
             {
                 path: "/packages",
                 element: (
-                    <PrivateRoute>
-                        <Packages />
-                    </PrivateRoute>
+                    <Packages />
                 )
             },
             {

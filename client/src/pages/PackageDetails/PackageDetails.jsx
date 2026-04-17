@@ -1,4 +1,3 @@
-// import { Link, useLocation, useParams } from "react-router-dom"
 import Container from "../../components/Shared/Container";
 import {
   Breadcrumb,
@@ -7,176 +6,180 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
 import { Clock, Star } from "lucide-react";
 import { FaLocationArrow } from "react-icons/fa";
 import Itinerary from "../../components/PackageDetails/Itinerary/Itinerary";
 import IncludedExcluded from "../../components/PackageDetails/IncludedExcluded/IncludedExcluded";
 import CustomerReviews from "../../components/PackageDetails/CustomerReviews/CustomerReviews";
-
-
+import { useGetSinglePackage } from "../../hooks/usePackage";
+import { useParams } from "react-router-dom";
+import getDuration from "../../utils/getTourDuration";
+import { useGetReviewsByPackageId } from "../../hooks/useReview";
 
 const PackageDetails = () => {
+  const { id } = useParams();
+  const { data: singlePackage = [], isLoading } = useGetSinglePackage(id);
+  const { data: reviews = [], isLoading: reviewLoading } = useGetReviewsByPackageId(id);
 
-  // load data from the database
-  const singlePackage = {
-    id: 1,
-    title: "Beach Paradise",
-    location: "Maldives",
-    duration: "7 Days / 6 Nights",
-    price: 1299,
-    rating: 4.8,
-    reviewCount: 128,
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
+  const duration = getDuration(
+    singlePackage.startDate,
+    singlePackage.endDate
+  );
 
-    // gallery: [
-    //   "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
-    //   "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80",
-    //   "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80"
-    // ],
-
-    description: "Nestled in the heart of the Indian Ocean, this beach paradise offers an unforgettable experience for travelers seeking both relaxation and adventure. The resort features overwater bungalows, private beaches, and exceptional dining options. Enjoy snorkeling in vibrant coral reefs, sunset cruises, and rejuvenating spa treatments. With warm tropical weather year-round and friendly local hospitality, this destination promises memories that will last a lifetime. Experience the ultimate beach getaway with pristine sandy shores, crystal-clear waters, and luxurious accommodations. This paradise destination offers the perfect blend of relaxation and adventure, with world-class amenities and breathtaking views that will leave you speechless.",
-
-    included: ["Round-trip flights", "5-star hotel accommodation", "Daily breakfast & dinner", "Airport transfers", "Welcome drink on arrival", "24/7 concierge service"],
-    excluded: ["Travel insurance", "Visa fees", "Optional tours", "Personal expenses", "Alcoholic beverages"],
-
-    itinerary: [
-      { day: 1, title: "Arrival & Welcome", description: "Arrive at the airport, transfer to hotel, welcome dinner" },
-      { day: 2, title: "Beach Day", description: "Relax on the pristine beaches, water sports activities" },
-      { day: 3, title: "Island Exploration", description: "Guided tour of local islands, cultural experience" },
-      { day: 4, title: "Adventure Sports", description: "Scuba diving, jet skiing, parasailing" },
-      { day: 5, title: "Sunset Cruise", description: "Luxury boat cruise with dinner" },
-      { day: 6, title: "Spa & Relaxation", description: "Traditional spa treatments, yoga session" },
-      { day: 7, title: "Departure", description: "Breakfast and airport transfer" }
-    ],
-
-    availableDates: ["2024-12-15", "2024-12-20", "2025-01-10", "2025-01-25"],
-
-    reviews: [
-      { id: 1, user: "John D.", rating: 5, comment: "Amazing experience! Highly recommend.", date: "2024-10-15" },
-      { id: 2, user: "Sarah M.", rating: 4.5, comment: "Beautiful location, great service.", date: "2024-10-10" }
-    ]
-  };
-
-
+  if (isLoading || reviewLoading) return <p>loading......</p>;
 
   return (
     <section className="py-6">
       <Container>
-        {/* breadcrumb list */}
+
+        {/* Breadcrumb */}
         <div className="pb-4 relative overflow-hidden">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink className="hover:text-primary" href="/">Home</BreadcrumbLink>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbLink className="hover:text-primary" href="/packages">Packages</BreadcrumbLink>
+                <BreadcrumbLink href="/packages">Packages</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-primary">{singlePackage.title}</BreadcrumbPage>
+                <BreadcrumbPage className="text-primary">
+                  {singlePackage.title}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
 
-        {/* images */}
+        {/* Image */}
         <div className="w-full h-100 md:h-150">
-          <img className="w-full h-full rounded-2xl object-cover opacity-95 hover:opacity-100 transition-opacity" src={singlePackage.image} alt="" />
+          <img
+            className="w-full h-full rounded-2xl object-cover"
+            src={singlePackage.image}
+            alt=""
+          />
         </div>
 
+        {/* MAIN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-6">
 
+          {/* LEFT CONTENT */}
+          <div className="lg:col-span-2">
 
-        {/* details  */}
-        <div>
+            {/* title + rating */}
+            <div className="flex flex-wrap justify-between items-start mt-5">
+              <h1 className="text-3xl md:text-4xl font-bold text-secondary">
+                {singlePackage.title}
+              </h1>
 
-          {/* title, rating, reviews */}
-          <div className="flex flex-wrap justify-between items-start mt-5">
-            <h1 className="text-3xl md:text-4xl font-bold text-secondary">{singlePackage.title}</h1>
-            <div className="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-lg">
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="font-semibold">{singlePackage.rating}</span>
-              <span className="text-gray-500">({singlePackage.reviewCount} reviews)</span>
+              <div className="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-lg">
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <span className="font-semibold">
+                  {singlePackage.rating}
+                </span>
+                <span className="text-gray-500">
+                  ({singlePackage.reviewCount} reviews)
+                </span>
+              </div>
             </div>
+
+            {/* location + duration */}
+            <div className="flex flex-wrap items-center gap-10 text-gray-600 my-4">
+              <div className="flex items-center gap-2">
+                <FaLocationArrow />
+                <span>{singlePackage.location}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Clock size={16} />
+                <span>{duration}</span>
+              </div>
+            </div>
+
+            {/* overview */}
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Overview</h2>
+              <p className="text-text/80 leading-relaxed">
+                {singlePackage.description}
+              </p>
+            </div>
+
+            {/* itinerary */}
+            <Itinerary itinerary={singlePackage.itinerary} />
+
+            {/* included excluded */}
+            <IncludedExcluded
+              included={singlePackage.included}
+              excluded={singlePackage.excluded}
+            />
+
+            {/* reviews */}
+            <CustomerReviews reviews={reviews} />
           </div>
 
-          {/* location, duration */}
-          <div className="flex flex-wrap items-center gap-10 text-gray-600 my-4">
-            <div className="flex items-center gap-2">
-              <FaLocationArrow />
-              <span>{singlePackage.location}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock size={16} />
-              <span>{singlePackage.duration}</span>
-            </div>
-          </div>
+          {/* RIGHT SIDEBAR (BOOKING CARD) */}
+        <div className="hidden lg:block">
+  <div className="sticky top-24 z-40">
+    <div className="border rounded-2xl bg-white shadow-xl overflow-hidden">
 
-          {/* description */}
-          <div className="">
-            <h2 className="text-xl font-semibold mb-2">Overview</h2>
-            <p className="text-text/80 leading-relaxed">{singlePackage.description}</p>
-          </div>
+      {/* Price Header */}
+      <div className="p-5 border-b bg-gradient-to-r from-primary/5 to-transparent">
+        <p className="text-sm text-gray-500">Starting from</p>
+        <h2 className="text-3xl font-bold text-primary">
+          ${singlePackage.price}
+        </h2>
+        <p className="text-xs text-gray-500">per person</p>
+      </div>
 
-          {/* itinerary */}
-          <Itinerary
-            itinerary={singlePackage.itinerary}
-          />
-          {/* inculded and excluded */}
-          <IncludedExcluded
-            included={singlePackage.included}
-            excluded={singlePackage.excluded}
-          />
+      {/* Body */}
+      <div className="p-5 space-y-4">
 
-          {/* Reviews Section */}
-          {/* <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
-
-            <div className="space-y-4">
-              {
-                singlePackage.reviews?.map((review) => (
-                  <div key={review.id} className="p-4 border border-primary rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-semibold">{review.user}</p>
-                        <Rating initialRating={review.rating}></Rating>
-                      </div>
-                      <span className="text-sm text-gray-500">{review.date}</span>
-                    </div>
-
-                    <p className="text-gray-600 text-sm">{review.comment}</p>
-                  </div>
-                ))
-              }
-            </div>
-          </div> */}
-          <CustomerReviews
-            reviews={singlePackage.reviews}
-          />
-
-
-
-
+        {/* Trust points */}
+        <div className="text-sm text-gray-600 space-y-1">
+          <p>✔ No payment today</p>
+          <p>✔ Free cancellation</p>
+          <p>✔ Instant confirmation</p>
         </div>
 
+        {/* CTA */}
+        <button className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:opacity-90 active:scale-[0.98] transition">
+          Book Now
+        </button>
+
+        {/* Secondary note */}
+        <p className="text-xs text-center text-gray-400">
+          You won’t be charged yet
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+        </div>
       </Container>
+      {/* MOBILE STICKY BOOKING BAR */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+        <div className="bg-white border-t shadow-lg px-4 py-3 flex items-center justify-between">
 
-      {/* STICKY BOOKING BUTTON - Fixed at top right on all devices */}
-      <div className="fixed top-12 right-0 lg:right-16 z-50 p-4">
-        <div className="bg-white shadow-lg rounded-full px-6 py-3 flex items-center gap-4 border border-gray-100">
           <div>
-            <span className="text-2xl font-bold text-primary">${singlePackage.price}</span>
-            <span className="text-gray-500 text-sm ml-1">/person</span>
+            <p className="text-xs text-gray-500">Price</p>
+            <p className="text-lg font-bold text-primary">
+              ${singlePackage.price}
+            </p>
           </div>
-          <button className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition shadow-md">
+
+          <button className="bg-primary text-white px-5 py-2 rounded-lg font-semibold">
             Book Now
           </button>
+
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default PackageDetails
+export default PackageDetails;

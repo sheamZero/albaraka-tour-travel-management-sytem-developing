@@ -46,6 +46,8 @@ async function run() {
         const database = client.db("tourTravel");
         const userCollections = database.collection("users");
         const packageCollections = database.collection("packages");
+        const reviewCollections = database.collection("reviews");
+
 
         app.post("/role", async (req, res) => {
             try {
@@ -103,7 +105,7 @@ async function run() {
 
 
         // packages related api----------------------------------------------
-        app.get("/packages", verifyToken, verifyUserEmail, async (req, res) => {
+        app.get("/packages", async (req, res) => {
             try {
                 const result = await packageCollections.find().toArray();
                 res.send(result);
@@ -112,6 +114,24 @@ async function run() {
                 res.status(500).send({ message: error.message });
             }
 
+        })
+
+        app.get("/package/:id", async (req, res) => {
+            try {
+                const { id } = req.params;
+
+                const query = { _id: new ObjectId(id) }
+
+                const result = await packageCollections.findOne(query);
+
+
+                // console.log("id and result", id, result);
+
+                res.send(result)
+
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
         })
 
         app.post("/package", verifyToken, verifyUserEmail, verifyAdmin(userCollections), async (req, res) => {
@@ -134,6 +154,23 @@ async function run() {
                     success: false,
                     message: error.message
                 });
+            }
+        });
+
+        // reviews related api----------------------------------------------
+        app.get("/reviews/:packageId", async (req, res) => {
+            try {
+                const { packageId } = req.params;
+
+                const query = { packageId: packageId };
+
+                const result = await reviewCollections.find(query).toArray();
+
+                console.log("pkg id:", query, result);
+
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: error.message });
             }
         });
 

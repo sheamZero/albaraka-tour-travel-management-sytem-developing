@@ -5,20 +5,25 @@ import { useQuery, } from "@tanstack/react-query";
 
 
 
-export const useGetAllPackage = () => {
-    // const { user } = useAuth();
-    // const email = user?.email;
+export const useGetAllPackage = ({ page, limit } = {}) => {
     const axiosSecure = useAxiosSecure();
 
     return useQuery({
-        queryKey: ["packages",],
+        queryKey: ["packages", page, limit],
         queryFn: async () => {
-            const { data } = await axiosSecure.get("/packages");
+            let url = "/packages";
+
+            // 👉 if pagination params exist, use them
+            if (page && limit) {
+                url = `/packages?page=${page}&limit=${limit}`;
+            }
+
+            const { data } = await axiosSecure.get(url);
             return data;
         },
-        // enabled: !!email,
+        keepPreviousData: !!page,
     });
-}
+};
 
 export const useGetSinglePackage = (id) => {
     const axiosSecure = useAxiosSecure();
@@ -53,10 +58,10 @@ export const usePackagesByCategory = (category) => {
 
 
 
-export const useCategoryCounts = ()=>{
-      const axiosPublic = useAxiosPublic();
+export const useCategoryCounts = () => {
+    const axiosPublic = useAxiosPublic();
 
-       return useQuery({
+    return useQuery({
         queryKey: ["category-counts"],
         queryFn: async () => {
             const { data } = await axiosPublic.get("/categories-with-count");

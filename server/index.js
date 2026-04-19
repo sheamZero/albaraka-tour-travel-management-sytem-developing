@@ -106,16 +106,43 @@ async function run() {
 
 
         // packages related api----------------------------------------------
+        // app.get("/packages", async (req, res) => {
+        //     try {
+        //         const result = await packageCollections.find().toArray();
+        //         res.send(result);
+        //         console.log("packages", result)
+        //     } catch (error) {
+        //         res.status(500).send({ message: error.message });
+        //     }
+        // })
+
+        // paginationss
         app.get("/packages", async (req, res) => {
             try {
-                const result = await packageCollections.find().toArray();
-                res.send(result);
-                console.log("packages", result)
-            } catch (error) {
-                res.status(500).send({ message: error.message });
-            }
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 6;
 
-        })
+                const skip = (page - 1) * limit;
+
+                const totalPackages = await packageCollections.countDocuments();
+
+                const packages = await packageCollections
+                    .find()
+                    .sort({ _id: -1 })
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
+
+                res.send({
+                    totalPackages,
+                    page,
+                    totalPages: Math.ceil(totalPackages / limit),
+                    data: packages,
+                });
+            } catch (error) {
+                res.status(500).send({ message: "Pagination failed" });
+            }
+        });
 
         app.get("/packages/category", async (req, res) => {
             const category = req.query.cat?.toLowerCase();
@@ -189,28 +216,129 @@ async function run() {
 
 
         // booking package related api ------------------
-        app.get("/packages/my-bookings", verifyToken, verifyUserEmail, async (req, res) => {
-            try {
-                console.log("verifiedEmail:", req.verifiedEmail);
 
-                const email = req.verifiedEmail;
+        // apis for admin
+        // all bookings
+        app.get("/bookings",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    const bookings = await bookingCollections
+                        .find()
+                        .sort({ createdAt: -1 })
+                        .toArray();
 
-                if (!email) {
-                    return res.status(400).send({ message: "Email not found in request" });
+                    res.send({
+                        data: bookings,
+                    });
+                } catch (error) {
+                    res.status(500).send({ message: "Failed to fetch bookings" });
                 }
-
-                const bookings = await bookingCollections
-                    .find({ userEmail: email })
-                    .sort({ bookingDate: -1 })
-                    .toArray();
-
-                res.send(bookings);
-            } catch (error) {
-                console.error("ERROR:", error); // 👈 VERY IMPORTANT
-                res.status(500).send({ message: "Failed to fetch bookings" });
             }
-        });
+        );
 
+        app.patch(
+            "/bookings/status/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    const id = req.params.id;
+                    const { status } = req.body; // approved / rejected
+
+                    console.log("id and status", id, status);
+
+                    const query = { _id: new ObjectId(id) };
+
+                    const updateDoc = {
+                        $set: {
+                            status,
+                        },
+                    };
+
+                    const result = await bookingCollections.updateOne(query, updateDoc);
+
+                    res.send({
+                        success: true,
+                        modifiedCount: result.modifiedCount,
+                    });
+                } catch (error) {
+                    res.status(500).send({
+                        success: false,
+                        message: "Failed to update status",
+                    });
+                }
+            }
+        );
+
+        // delete 
+        app.delete("/bookings/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    const id = req.params.id;
+
+                    console.log("dlt id", id)
+
+                    const result = await bookingCollections.deleteOne({
+                        _id: new ObjectId(id),
+                    });
+
+                    if (result.deletedCount === 0) {
+                        return res.status(404).send({
+                            success: false,
+                            message: "Booking not found",
+                        });
+                    }
+
+                    res.send({
+                        success: true,
+                        deletedCount: result.deletedCount,
+                        message: "Booking deleted successfully",
+                    });
+                } catch (error) {
+                    res.status(500).send({
+                        success: false,
+                        message: "Failed to delete booking",
+                    });
+                }
+            }
+        );
+
+        // apis for user
+        //specific user bookings
+        app.get("/packages/my-bookings",
+            verifyToken,
+            verifyUserEmail,
+            async (req, res) => {
+                try {
+                    console.log("verifiedEmail:", req.verifiedEmail);
+
+                    const email = req.verifiedEmail;
+
+                    if (!email) {
+                        return res.status(400).send({ message: "Email not found in request" });
+                    }
+
+                    const bookings = await bookingCollections
+                        .find({ userEmail: email })
+                        .sort({ bookingDate: -1 })
+                        .toArray();
+
+                    res.send(bookings);
+                } catch (error) {
+                    console.error("ERROR:", error); // 👈 VERY IMPORTANT
+                    res.status(500).send({ message: "Failed to fetch bookings" });
+                }
+            }
+        );
+
+        // add booking
         app.post("/package/booking", verifyToken, verifyUserEmail, async (req, res) => {
             const bookedItem = req.body;
             console.log("booked item", bookedItem)

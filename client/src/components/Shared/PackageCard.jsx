@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import getDuration from "../../utils/getTourDuration";
 
 const PackageCard = ({ item, index }) => {
-    console.log("packages items --> ", item);
+    // console.log("packages items --> ", item);
 
    
 
@@ -13,7 +13,7 @@ const PackageCard = ({ item, index }) => {
 
     return (
         <motion.div
-            key={item.id}
+            key={item._id}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -92,7 +92,7 @@ const PackageCard = ({ item, index }) => {
                     {/* Included Items */}
                     <div className="flex flex-wrap gap-2 mb-4">
                         {
-                            item.included.slice(0, 3).map((include, idx) => (
+                            item.included?.slice(0, 3).map((include, idx) => (
                                 <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded-full text-text/80">
                                     {include}
                                 </span>

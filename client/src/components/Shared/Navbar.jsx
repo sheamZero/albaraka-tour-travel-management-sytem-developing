@@ -42,7 +42,8 @@ const dashboardPath = user
     const menuItems = [
         { name: "Home", link: "/" },
         { name: "Packages", link: "/packages" },
-        { name: "Destinations", link: "/destinations" },
+        { name: "Categories", link: "/categories" },
+        // { name: "Destinations", link: "/destinations" },
         { name: "About Us", link: "/about" },
         { name: "Contact", link: "/contact" },
     ];

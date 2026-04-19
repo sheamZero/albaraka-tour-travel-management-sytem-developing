@@ -4,7 +4,7 @@ import useAxiosSecure from "./useAxiosSecure";
 
 
 export const useGetReviewsByPackageId = (packageId) => {
-    console.log("pdkalsjls", packageId)
+    // console.log("pdkalsjls", packageId)
     const axiosSecure = useAxiosSecure();
 
     return useQuery({

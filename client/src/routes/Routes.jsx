@@ -18,6 +18,7 @@ import AddPackage from "../pages/Dashboard/AdminDashboard/AddPackage/AddPackage"
 import AllBookings from "../pages/Dashboard/AdminDashboard/AllBookings/AllBookings";
 import ManageUsers from "../pages/Dashboard/AdminDashboard/ManageUsers/ManageUsers";
 import AdminRoute from "./AdminRoute";
+import Categories from "../pages/Categories/Categories";
 
 const router = createBrowserRouter([
     {
@@ -39,9 +40,13 @@ const router = createBrowserRouter([
                 element: <PackageDetails />
             },
             {
-                path: "/destinations",
-                element: <Destinations />
+                path: "/categories",
+                element: <Categories/>
             },
+            // {
+            //     path: "/destinations",
+            //     element: <Destinations />
+            // },
             {
                 path: "/about",
                 element: <AboutUs />

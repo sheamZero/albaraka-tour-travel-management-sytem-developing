@@ -1,5 +1,6 @@
 import Hero from "../../components/Home/Hero/Hero";
 import Packages from "../../components/Home/Packages/Packages";
+import PopularCategories from "../../components/Home/PopularCategories/PopularCategories";
 import PopularDestinations from "../../components/Home/PopularDestinations/PopularDestinations";
 import ReadyToBookTour from "../../components/Home/ReadyToBookTour/ReadyToBookTour";
 import SearchTour from "../../components/Home/SearchTour/SearchTour";
@@ -11,9 +12,11 @@ const Home = () => {
     return (
         <div>
             <Hero />
-            <SearchTour />
+            {/* <SearchTour /> */}
+            {/* <PopularDestinations /> */}
+            <PopularCategories />
             <Packages />
-            <PopularDestinations />
+
             <ReadyToBookTour />
 
             <WhyChooseUs />

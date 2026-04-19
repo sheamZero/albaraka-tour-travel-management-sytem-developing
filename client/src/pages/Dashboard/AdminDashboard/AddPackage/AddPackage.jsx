@@ -6,14 +6,20 @@ import AvailableDates from "../../../../components/Dashboard/AddPackage/Availabl
 import useAxiosSecure from "../../../../hooks/useAxiosSecure";
 import { uploadImage } from "../../../../utils/imageUpload";
 import { successAction } from "../../../../utils/swal";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const AddPackage = () => {
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
+  const [isAddingPckg, setIsAddingPckg] = useState(false)
+
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     control,
     formState: { errors },
   } = useForm({
@@ -33,6 +39,7 @@ const AddPackage = () => {
   });
 
   const onSubmit = async (data) => {
+    setIsAddingPckg(true);
     console.log("Form Data:", data);
     const imageFile = data.image[0];
 
@@ -50,7 +57,10 @@ const AddPackage = () => {
     const response = await axiosSecure.post("/package", packageData)
     console.log("package data response", response);
     if (response.data?.insertedId) {
+      setIsAddingPckg(false)
+      reset();
       successAction("Package Upload Successfully!")
+      navigate("/packages");
     }
   };
 
@@ -103,8 +113,8 @@ const AddPackage = () => {
 
             <button
               type="submit"
-              // disabled={isSubmitting}
-              className="px-6 py-2 bg-primary text-white rounded-lg flex items-center gap-2"
+              disabled={isAddingPckg}
+              className="px-6 py-2 bg-primary text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
             >
               {/* {isSubmitting ? (
                 <>
@@ -113,7 +123,7 @@ const AddPackage = () => {
                 </>
               ) : */}
 
-              "Add Package"
+              {isAddingPckg ? "Adding..." : "Add Package"}
 
             </button>
 

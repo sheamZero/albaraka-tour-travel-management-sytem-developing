@@ -47,6 +47,7 @@ async function run() {
         const userCollections = database.collection("users");
         const packageCollections = database.collection("packages");
         const reviewCollections = database.collection("reviews");
+        const bookingCollections = database.collection("bookings");
 
 
         app.post("/role", async (req, res) => {
@@ -116,6 +117,33 @@ async function run() {
 
         })
 
+        app.get("/packages/category", async (req, res) => {
+            const category = req.query.cat?.toLowerCase();
+
+            console.log("category from the api ", category)
+
+            let query = {};
+            if (category) {
+                query.category = category;
+            }
+
+            const result = await packageCollections.find(query).toArray();
+            res.send(result);
+        });
+
+        app.get("/categories-with-count", async (req, res) => {
+            const result = await packageCollections.aggregate([
+                {
+                    $group: {
+                        _id: "$category",
+                        total: { $sum: 1 }
+                    }
+                }
+            ]).toArray();
+
+            res.send(result);
+        });
+
         app.get("/package/:id", async (req, res) => {
             try {
                 const { id } = req.params;
@@ -133,6 +161,7 @@ async function run() {
                 res.status(500).send({ message: error.message });
             }
         })
+
 
         app.post("/package", verifyToken, verifyUserEmail, verifyAdmin(userCollections), async (req, res) => {
             try {
@@ -156,6 +185,85 @@ async function run() {
                 });
             }
         });
+
+
+
+        // booking package related api ------------------
+        app.get("/packages/my-bookings", verifyToken, verifyUserEmail, async (req, res) => {
+            try {
+                console.log("verifiedEmail:", req.verifiedEmail);
+
+                const email = req.verifiedEmail;
+
+                if (!email) {
+                    return res.status(400).send({ message: "Email not found in request" });
+                }
+
+                const bookings = await bookingCollections
+                    .find({ userEmail: email })
+                    .sort({ bookingDate: -1 })
+                    .toArray();
+
+                res.send(bookings);
+            } catch (error) {
+                console.error("ERROR:", error); // 👈 VERY IMPORTANT
+                res.status(500).send({ message: "Failed to fetch bookings" });
+            }
+        });
+
+        app.post("/package/booking", verifyToken, verifyUserEmail, async (req, res) => {
+            const bookedItem = req.body;
+            console.log("booked item", bookedItem)
+
+            if (bookedItem.numberOfPeople < 1 || bookedItem.numberOfPeople > 20) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Number of people must be between 1 and 20"
+                });
+            }
+
+            const expectedTotalPrice = bookedItem.price * bookedItem.numberOfPeople;
+            if (bookedItem.totalPrice !== expectedTotalPrice) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Price calculation mismatch"
+                });
+            }
+
+            const packageExists = await packageCollections.findOne({
+                _id: new ObjectId(bookedItem.packageId)
+            });
+            if (!packageExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Package not found"
+                });
+            }
+
+
+            // const existingBooking = await db.collection('bookings').findOne({
+            //     packageId: bookedItem.packageId,
+            //     userEmail: bookedItem.userEmail,
+            //     status: { $in: ['pending', 'confirmed'] }
+            // });
+
+            // if (existingBooking) {
+            //     return res.status(409).json({
+            //         success: false,
+            //         message: "You already have an active booking for this package"
+            //     });
+            // }
+
+            const bookingDocument = {
+                ...bookedItem,
+                status: 'pending', // pending, confirmed, cancelled, completed
+                paymentStatus: 'unpaid', // unpaid, paid, refunded
+            };
+
+            const result = await bookingCollections.insertOne(bookingDocument);
+            res.send(result)
+
+        })
 
         // reviews related api----------------------------------------------
         app.get("/reviews/:packageId", async (req, res) => {

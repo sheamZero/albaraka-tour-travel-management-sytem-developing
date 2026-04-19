@@ -103,6 +103,7 @@ const Packages = () => {
             packages.map((item, index) => (
               // single card
               <PackageCard
+                key={item._id}
                 item={item}
                 index={index}
               >

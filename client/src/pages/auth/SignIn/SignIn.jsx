@@ -22,6 +22,8 @@ const SignIn = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log("locatino ", location)
+
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -46,14 +48,20 @@ const SignIn = () => {
         // const redirectPath = location.state?.from?.pathname || "/";
 
         let redirectPath;
-        if (data.role === "admin") {
-          redirectPath = "/dashboard/admin";
-        } else {
-          redirectPath = "/dashboard/user";
-        }
-        navigate(redirectPath, { replace: true, state: {} });
 
-        console.log("redirect apth", redirectPath)
+        if (location.state?.from?.pathname) {
+          redirectPath = location.state?.from?.pathname;
+        } else {
+          if (data.role === "admin") {
+            redirectPath = "/dashboard/admin";
+          } else {
+            redirectPath = "/";
+          }
+        }
+
+        // Single navigate call
+        navigate(redirectPath, { replace: true, state: {} });
+        console.log("redirect path", redirectPath);
 
       }
     } catch (err) {
@@ -98,13 +106,20 @@ const SignIn = () => {
         successAction("Logged in successfully!");
 
         // Set redirect path based on role
+
         let redirectPath;
-        if (data.role === "admin") {
-          redirectPath = "/dashboard/admin";
+
+        if (location.state?.from?.pathname) {
+          redirectPath = location.state?.from?.pathname;
         } else {
-          redirectPath = "/dashboard/user";
+          if (data.role === "admin") {
+            redirectPath = "/dashboard/admin";
+          } else {
+            redirectPath = "/";
+          }
         }
 
+        // Single navigate call
         navigate(redirectPath, { replace: true, state: {} });
         console.log("redirect path", redirectPath);
       }

@@ -15,7 +15,9 @@ const CustomerReviews = ({ reviews = [] }) => {
                                     <p className="font-semibold">{review?.userName}</p>
                                     <Rating initialRating={review?.rating}></Rating>
                                 </div>
-                                <span className="text-sm text-gray-500">{review?.date}</span>
+                                <span className="text-sm text-gray-500">
+                                    {review?.date ? review.date.split("T")[0] : ""}
+                                </span>
                             </div>
 
                             <p className="text-gray-600 text-sm">{review?.review}</p>

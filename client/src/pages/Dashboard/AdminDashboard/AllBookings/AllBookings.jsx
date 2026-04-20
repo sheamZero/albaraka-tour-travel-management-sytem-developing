@@ -18,9 +18,9 @@ const AllBookings = () => {
     const bookings = data?.data || [];
 
     // approve
-    const handleApproveBooking = (id) => {
-        updateStatus({ id, status: "approved" });
-    }
+    // const handleApproveBooking = (id) => {
+    //     updateStatus({ id, status: "approved" });
+    // }
     // reject
     const handleRejectBooking = (id) => {
         updateStatus({ id, status: "rejected" });
@@ -76,7 +76,7 @@ const AllBookings = () => {
                                     key={item._id}
                                     item={item}
                                     index={index}
-                                    handleApproveBooking={handleApproveBooking}
+                                    // handleApproveBooking={handleApproveBooking}
                                     handleRejectBooking={handleRejectBooking}
                                     handleDeleteBooking={handleDeleteBooking}
                                     handleCompleteBooking={handleCompleteBooking}

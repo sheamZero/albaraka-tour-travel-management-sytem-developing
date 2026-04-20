@@ -1,6 +1,14 @@
 import { Bell, SquareChevronLeft } from "lucide-react";
+import { useAuth } from "../../../hooks/useAuth";
+import useAdmin from "../../../hooks/useAdmin";
 
 const DashboardHeader = ({ toggleSidebar }) => {
+const {user} = useAuth();
+const {isAdmin} = useAdmin();
+    const role = isAdmin ? "Admin" : "User";
+
+    console.log(user)
+
     return (
         <header className="sticky top-0 z-40 flex items-center justify-between px-4 lg:px-20 py-4 bg-white border-b border-secondary shadow-sm">
 
@@ -25,12 +33,12 @@ const DashboardHeader = ({ toggleSidebar }) => {
             <div className="flex items-center gap-5">
 
                 <div className="text-right hidden sm:block">
-                    <p className="font-medium text-sm">User Name</p>
-                    <p className="text-xs text-gray-500">Role</p>
+                    <p className="font-medium text-sm">{user.displayName}</p>
+                    <p className="text-xs text-gray-500">{role}</p>
                 </div>
 
                 <img
-                    src="https://i.ibb.co/4pDNDk1/avatar.png"
+                    src={user?.photoURL}
                     alt="User"
                     className="w-10 h-10 rounded-full border border-primary object-cover"
                 />

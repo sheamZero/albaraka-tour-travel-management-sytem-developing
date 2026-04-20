@@ -3,7 +3,7 @@ import { Check, X, Trash2, User, MapPin, CalendarDays, CreditCard, CheckCheck, }
 const BookingTableRows = ({
     item,
     index,
-    handleApproveBooking,
+    // handleApproveBooking,
     handleRejectBooking,
     handleDeleteBooking,
     handleCompleteBooking,
@@ -114,14 +114,14 @@ const BookingTableRows = ({
                         ) : (
                             <>
                                 {/* Approve */}
-                                <button
+                                {/* <button
                                     onClick={() => handleApproveBooking(item._id)}
                                     title="Approve"
                                     disabled={isUpdatingStatus}
                                     className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition disabled:opacity-50"
                                 >
                                     <Check size={16} />
-                                </button>
+                                </button> */}
 
                                 {/* Reject */}
                                 <button

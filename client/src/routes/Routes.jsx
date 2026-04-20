@@ -19,6 +19,10 @@ import AllBookings from "../pages/Dashboard/AdminDashboard/AllBookings/AllBookin
 import ManageUsers from "../pages/Dashboard/AdminDashboard/ManageUsers/ManageUsers";
 import AdminRoute from "./AdminRoute";
 import Categories from "../pages/Categories/Categories";
+import MyReviews from "../pages/Dashboard/UserDashboard/MyReviews/MyReviews";
+import SuccessPayment from "../pages/Dashboard/UserDashboard/Payments/SuccessPayment";
+import CancelPayment from "../pages/Dashboard/UserDashboard/Payments/CancelPayment";
+import FailedPayment from "../pages/Dashboard/UserDashboard/Payments/FailedPayment";
 
 const router = createBrowserRouter([
     {
@@ -62,7 +66,19 @@ const router = createBrowserRouter([
             {
                 path: "/signup",
                 element: <SignUp />
-            }
+            },
+            {
+                path: "/payment-success",
+                element: <SuccessPayment />
+            },
+            {
+                path: "/payment-cancel",
+                element: <CancelPayment />
+            },
+            {
+                path: "/payment-failed",
+                element: <FailedPayment />
+            },
         ]
     },
 
@@ -90,6 +106,10 @@ const router = createBrowserRouter([
                     {
                         path: "payment-history",
                         element: <PaymentHistory />
+                    },
+                    {
+                        path: "my-reviews",
+                        element: <MyReviews />
                     }
                 ]
             },

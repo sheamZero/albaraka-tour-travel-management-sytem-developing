@@ -10,6 +10,10 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { ArrowRight } from "lucide-react";
 import { useCategoryCounts } from "../../../hooks/usePackage";
+import advanture from '../../../assets/images/advanture.png'
+import beach from '../../../assets/images/beach.png'
+import wildlife from '../../../assets/images/wildlife.png'
+import cultural from '../../../assets/images/cultural.png'
 
 /**
  * Static category config (NO total here anymore)
@@ -18,22 +22,22 @@ const categories = [
     {
         id: "beach",
         name: "Beach",
-        image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&h=600&fit=crop",
+        image: beach
     },
     {
         id: "adventure",
         name: "Adventure",
-        image: "https://i.ibb.co/J2s6F6b/adventure.jpg",
+        image: advanture
     },
     {
         id: "cultural",
         name: "Cultural",
-        image: "https://i.ibb.co/6m9XKZs/culture.jpg",
+        image: cultural
     },
     {
         id: "wildlife",
         name: "Wildlife",
-        image: "https://i.ibb.co/7gXK9Wf/wildlife.jpg",
+        image: wildlife
     }
 ];
 

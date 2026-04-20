@@ -1,8 +1,11 @@
 import { Calendar, MapPin, Users, CreditCard, Clock, ChevronRight, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import getDuration from "../../../utils/getTourDuration";
+import { useNavigate } from "react-router-dom";
 
-const BookingCard = ({ booking }) => {
+const BookingCard = ({ booking, handleRateUs, handlePay }) => {
+  const navigate = useNavigate();
+  // console.log("booking in card", booking)
   // Format dates for better display
   const formatDate = (dateString) => {
     if (!dateString) return "TBD";
@@ -109,37 +112,58 @@ const BookingCard = ({ booking }) => {
         </div>
 
         {/* Inclusions Preview */}
-        {booking.included && booking.included.length > 0 && (
-          <div className="mb-3">
-            <p className="text-xs font-semibold text-gray-600 mb-1">Includes:</p>
-            <div className="flex flex-wrap gap-1.5">
-              {booking.included.slice(0, 2).map((item, idx) => (
-                <span key={idx} className="text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">
-                  {item}
-                </span>
-              ))}
-              {booking.included.length > 2 && (
-                <span className="text-xs text-primary font-medium">
-                  +{booking.included.length - 2} more
-                </span>
-              )}
+        {
+          booking.included && booking.included.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-600 mb-1">Includes:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {booking.included.slice(0, 2).map((item, idx) => (
+                  <span key={idx} className="text-xs bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">
+                    {item}
+                  </span>
+                ))}
+                {booking.included.length > 2 && (
+                  <span className="text-xs text-primary font-medium">
+                    +{booking.included.length - 2} more
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        }
 
         {/* Action Buttons */}
         <div className="flex gap-4">
 
-          <button className="flex-1 bg-gray-50 border border-primary hover:bg-primary hover:text-white text-gray-700 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-1 group/btn">
+          <button
+            onClick={() => navigate(`/packageDetails/${booking.packageId}`)}
+            className="flex-1 bg-gray-50 border border-primary hover:bg-primary hover:text-white text-gray-700 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-1 group/btn">
             <span>View Details</span>
             <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-0.5 transition-transform" />
           </button>
 
-          {booking.paymentStatus === "unpaid" && (
-            <button className="flex-1 bg-primary text-white py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
-              Pay Now
-            </button>
-          )}
+          {
+            booking.paymentStatus === "unpaid" ? (
+              <button
+                onClick={() => handlePay(booking)}
+                className="flex-1 bg-primary text-white py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                Pay ${booking.totalPrice}
+              </button>
+            ) : (
+              <button
+  disabled={booking.status !== "completed"}
+  onClick={() => handleRateUs(booking)}
+  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md
+    ${booking.status !== "completed"
+      ? "bg-primary/50 cursor-not-allowed"
+      : "bg-primary text-white hover:shadow-lg"
+    }`}
+>
+  Rate Us
+</button>
+            )
+          }
         </div>
 
         {/* Booking Reference (optional) */}

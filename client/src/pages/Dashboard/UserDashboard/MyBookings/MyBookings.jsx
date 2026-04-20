@@ -8,13 +8,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
+import ReviewPackageModal from "../../../../components/Modals/ReviewPackageModal";
+import PaymentModal from "../../../../components/Modals/PaymentModal";
+import useAxiosSecure from "../../../../hooks/useAxiosSecure";
+
 
 const MyBookings = () => {
-  const { data: mybookings = [], isLoading } =
-    useGetAllSpecificUserBookings();
+  const axiosSecure = useAxiosSecure();
+  const [paymentModal, setPaymentModal] = useState(false);
+  const [selectedPaymentBooking, setSelectedPaymentBooking] = useState(null);
+
+  const [reviewModal, setReviewModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const { data: mybookings = [], isLoading } = useGetAllSpecificUserBookings();
 
   const [filter, setFilter] = useState("all");
 
@@ -25,10 +33,42 @@ const MyBookings = () => {
       ? mybookings
       : mybookings.filter((b) => b.status === filter);
 
-      console.log("filterd booking", filteredBookings)
+
+
+  const handlePay = (booking) => {
+    setSelectedPaymentBooking(booking);
+    setPaymentModal(true);
+  };
+
+  const handlePaymentConfirm = async (method) => {
+    console.log("click method : ", method)
+    console.log("click booking : ", selectedPaymentBooking)
+    if (method === "sslcommerz") {
+      try {
+        const res = await axiosSecure.post("/create-sslcz-payment", {
+          bookingId: selectedPaymentBooking._id
+        });
+
+        console.log("response ", res)
+
+        const gatewayUrl = res.data.url;
+
+        window.location.replace(gatewayUrl);
+      } catch (error) {
+        console.error(error?.message);
+      }
+    }
+  };
+
+  const handleRateUs = (booking) => {
+    setSelectedBooking(booking);
+    setReviewModal(true);
+  };
+
+  // console.log("filterd booking", filteredBookings)
 
   return (
-    <section className="p-6">
+    <section className="px-4 lg:px-10 py-6">
       {/* Header with Dropdown */}
       <div className="flex items-center gap-10 mb-6">
         <h1 className="text-2xl text-secondary font-bold">
@@ -45,7 +85,7 @@ const MyBookings = () => {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end">
-            {["all", "pending", "completed"].map((tab) => (
+            {["all", "pending", "rejected", "completed"].map((tab) => (
               <DropdownMenuItem
                 key={tab}
                 onClick={() => setFilter(tab)}
@@ -59,16 +99,41 @@ const MyBookings = () => {
       </div>
 
       {/* Empty State */}
-      {filteredBookings.length === 0 ? (
-        <p className="text-gray-500">No bookings found.</p>
-      ) : (
-        /* Grid Cards */
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredBookings.map((booking) => (
-            <BookingCard key={booking._id} booking={booking} />
-          ))}
-        </div>
-      )}
+      {
+        filteredBookings.length === 0 ? (
+          <p className="text-gray-500">No bookings found.</p>
+        ) : (
+          /* Grid Cards */
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {
+              filteredBookings.map((booking) => (
+                <BookingCard
+                  key={booking._id}
+                  booking={booking}
+                  handleRateUs={handleRateUs}
+                  handlePay={handlePay}
+                />
+              ))
+            }
+          </div>
+        )
+      }
+
+
+      <PaymentModal
+        open={paymentModal}
+        setOpen={setPaymentModal}
+        booking={selectedPaymentBooking}
+        handlePaymentConfirm={handlePaymentConfirm}
+      />
+
+      <ReviewPackageModal
+        open={reviewModal}
+        setOpen={setReviewModal}
+        booking={selectedBooking}
+      />
+
+
     </section>
   );
 };

@@ -25,6 +25,7 @@ import CancelPayment from "../pages/Dashboard/UserDashboard/Payments/CancelPayme
 import FailedPayment from "../pages/Dashboard/UserDashboard/Payments/FailedPayment";
 import MyProfile from "../pages/MyProfile/MyProfile";
 import ErrorPage from "../pages/ErrorPage/ErrorPage";
+import AllPackages from "../pages/Dashboard/AdminDashboard/AllPackages/AllPackages";
 
 const router = createBrowserRouter([
     {
@@ -139,6 +140,14 @@ const router = createBrowserRouter([
                         element: (
                             <AdminRoute>
                                 <AddPackage />
+                            </AdminRoute>
+                        )
+                    },
+                    {
+                        path: "all-package",
+                        element: (
+                            <AdminRoute>
+                                <AllPackages />
                             </AdminRoute>
                         )
                     },

@@ -220,7 +220,6 @@ async function run() {
                     return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
                 }
 
-                // 🔐 VALIDATION STEP (IMPORTANT)
                 const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
                 const validation = await sslcz.validate({ val_id });
 
@@ -369,7 +368,6 @@ async function run() {
             }
         });
 
-
         app.get("/my-payments", verifyToken, verifyUserEmail, async (req, res) => {
             try {
                 const email = req.verifiedEmail;
@@ -406,7 +404,6 @@ async function run() {
             }
         });
 
-
         app.post("/role", async (req, res) => {
             try {
                 const { email } = req.body;
@@ -440,6 +437,7 @@ async function run() {
             }
         });
 
+
         // jwt token-------------------------
         app.post("/generate-token", async (req, res) => {
             const user = req.body;
@@ -462,16 +460,85 @@ async function run() {
         });
 
 
-        // packages related api----------------------------------------------
-        // app.get("/packages", async (req, res) => {
-        //     try {
-        //         const result = await packageCollections.find().toArray();
-        //         res.send(result);
-        //         console.log("packages", result)
-        //     } catch (error) {
-        //         res.status(500).send({ message: error.message });
-        //     }
-        // })
+
+        // packages related api-------------------------------
+        app.patch("/admin/package/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    const id = req.params.id;
+                    const updateData = req.body;
+
+                    const query = { _id: new ObjectId(id) }
+                    const updatedDoc = {
+                        $set: {
+                            ...updateData,
+                            updatedAt: new Date(),
+                        },
+                    }
+
+                    const result = await packageCollections.updateOne(query, updatedDoc)
+
+                    if (result.modifiedCount === 0) {
+                        return res.status(400).send({
+                            success: false,
+                            message: "No changes made",
+                        });
+                    }
+
+                    res.send({
+                        success: true,
+                        modifiedCount: result.modifiedCount,
+                        message: "Package updated successfully",
+                    });
+
+                } catch (error) {
+                    console.error("Update package error:", error);
+
+                    res.status(500).send({
+                        success: false,
+                        message: "Internal server error",
+                    });
+                }
+            }
+        );
+
+        app.delete("/admin/package/:id",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    const id = req.params.id;
+
+                    const result = await packageCollections.deleteOne({
+                        _id: new ObjectId(id),
+                    });
+
+                    if (result.deletedCount === 0) {
+                        return res.status(404).send({
+                            success: false,
+                            message: "Package not found",
+                        });
+                    }
+
+                    res.send({
+                        success: true,
+                        deletedCount: result.deletedCount,
+                        message: "Package deleted successfully",
+                    });
+                } catch (error) {
+                    console.error("Delete package error:", error);
+
+                    res.status(500).send({
+                        success: false,
+                        message: "Internal server error",
+                    });
+                }
+            }
+        );
 
         // paginationss
         app.get("/packages", async (req, res) => {
@@ -546,29 +613,28 @@ async function run() {
             }
         })
 
+        app.post("/package",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    const packageData = req.body;
+                    const result = await packageCollections.insertOne(packageData);
+                    res.status(201).send({
+                        success: true,
+                        insertedId: result.insertedId
+                    });
 
-        app.post("/package", verifyToken, verifyUserEmail, verifyAdmin(userCollections), async (req, res) => {
-            try {
-                const packageData = req.body;
-
-                // console.log("Received package:", packageData);
-
-                // Example DB insert
-                const result = await packageCollections.insertOne(packageData);
-
-                res.status(201).send({
-                    success: true,
-                    insertedId: result.insertedId
-                });
-
-            } catch (error) {
-                console.error(error);
-                res.status(500).send({
-                    success: false,
-                    message: error.message
-                });
+                } catch (error) {
+                    console.error(error);
+                    res.status(500).send({
+                        success: false,
+                        message: error.message
+                    });
+                }
             }
-        });
+        );
 
 
 
@@ -1011,7 +1077,8 @@ async function run() {
                 const result = await userCollections.updateOne(filter, updateDoc);
 
                 res.send(result);
-            });
+            }
+        );
 
         app.patch("/users/user/:id",
             verifyToken,
@@ -1030,7 +1097,8 @@ async function run() {
                 const result = await userCollections.updateOne(filter, updateDoc);
 
                 res.send(result);
-            });
+            }
+        );
 
         app.delete("/users/:id",
             verifyToken,
@@ -1060,7 +1128,8 @@ async function run() {
                 }
                 const result = await userCollections.deleteOne(query);
                 res.send(result);
-            });
+            }
+        );
 
         // api for isAdmin hooks-----------------------------
         app.get("/users/admin/:email", async (req, res) => {
@@ -1081,7 +1150,8 @@ async function run() {
         });
 
 
-        // user statistics
+
+        //statistics
         app.get(
             "/userStatistics",
             verifyToken,
@@ -1094,9 +1164,6 @@ async function run() {
                         .find({ userEmail })
                         .toArray();
 
-                    // -------------------------
-                    // 1. STATS
-                    // -------------------------
                     const total = bookings.length;
 
                     const completed = bookings.filter(
@@ -1118,9 +1185,6 @@ async function run() {
                         totalPay,
                     };
 
-                    // -------------------------
-                    // 2. CHART DATA
-                    // -------------------------
                     const monthlyData = {};
 
                     for (const booking of bookings) {
@@ -1143,9 +1207,6 @@ async function run() {
 
                     const bookingTrendData = Object.values(monthlyData);
 
-                    // -------------------------
-                    // 3. RECENT BOOKINGS (FIX ADDED)
-                    // -------------------------
                     const recentBookings = bookings
                         .slice(-4) // last 5 bookings
                         .reverse() // newest first
@@ -1156,9 +1217,7 @@ async function run() {
                         }));
 
                     console.log("recent bookings ", recentBookings)
-                    // -------------------------
-                    // RESPONSE
-                    // -------------------------
+
                     res.send({
                         stats,
                         bookingTrendData,
@@ -1170,115 +1229,101 @@ async function run() {
             }
         );
 
-app.get("/admin-statistics", async (req, res) => {
-  try {
-    const users = await userCollections.find().toArray();
-    const packages = await packageCollections.find().toArray();
-    const bookings = await bookingCollections.find().toArray();
-    const reviews = await reviewCollections.find().toArray();
-    const payments = await paymentCollections.find().toArray();
+        app.get("/admin-statistics",
+            verifyToken,
+            verifyUserEmail,
+            verifyAdmin(userCollections),
+            async (req, res) => {
+                try {
+                    console.log("hitted")
+                    const users = await userCollections.find().toArray();
+                    const packages = await packageCollections.find().toArray();
+                    const bookings = await bookingCollections.find().toArray();
+                    const reviews = await reviewCollections.find().toArray();
+                    const payments = await paymentCollections.find().toArray();
 
-    // -------------------------
-    // BOOKING STATS (optimized)
-    // -------------------------
-    const bookingStats = {
-      total: bookings.length,
-      pending: 0,
-      completed: 0,
-      rejected: 0,
-    };
+                    const bookingStats = {
+                        total: bookings.length,
+                        pending: 0,
+                        completed: 0,
+                        rejected: 0,
+                    };
 
-    for (const b of bookings) {
-      if (b.status === "pending") bookingStats.pending++;
-      else if (b.status === "completed") bookingStats.completed++;
-      else if (b.status === "rejected") bookingStats.rejected++;
-    }
+                    for (const b of bookings) {
+                        if (b.status === "pending") bookingStats.pending++;
+                        else if (b.status === "completed") bookingStats.completed++;
+                        else if (b.status === "rejected") bookingStats.rejected++;
+                    }
 
-    // -------------------------
-    // USER STATS
-    // -------------------------
-    const userStats = {
-      total: users.length,
-      admins: 0,
-      users: 0,
-    };
+                    const userStats = {
+                        total: users.length,
+                        admins: 0,
+                        users: 0,
+                    };
 
-    for (const u of users) {
-      if (u.role === "admin") userStats.admins++;
-      else userStats.users++;
-    }
+                    for (const u of users) {
+                        if (u.role === "admin") userStats.admins++;
+                        else userStats.users++;
+                    }
 
-    // -------------------------
-    // REVENUE
-    // -------------------------
-    let totalRevenue = 0;
+                    let totalRevenue = 0;
 
-    for (const p of payments) {
-      totalRevenue += Number(p.amount) || 0;
-    }
+                    for (const p of payments) {
+                        totalRevenue += Number(p.amount) || 0;
+                    }
 
-    // -------------------------
-    // SAFE UTC DATE FORMATTER
-    // -------------------------
-    const getUTCDate = (date) => {
-      const d = new Date(date);
-      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-    };
+                    const getUTCDate = (date) => {
+                        const d = new Date(date);
+                        return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+                    };
 
-    // -------------------------
-    // BOOKING TREND MAP (FAST O(n))
-    // -------------------------
-    const bookingMap = {};
+                    const bookingMap = {};
 
-    for (const b of bookings) {
-      const dateSource = b.createdAt || b.bookingDate;
-      if (!dateSource) continue;
+                    for (const b of bookings) {
+                        const dateSource = b.createdAt || b.bookingDate;
+                        if (!dateSource) continue;
 
-      const key = getUTCDate(dateSource);
-      bookingMap[key] = (bookingMap[key] || 0) + 1;
-    }
+                        const key = getUTCDate(dateSource);
+                        bookingMap[key] = (bookingMap[key] || 0) + 1;
+                    }
 
-    const last7Days = [...Array(7)].map((_, i) => {
-      const d = new Date();
-      d.setUTCDate(d.getUTCDate() - (6 - i));
+                    const last7Days = [...Array(7)].map((_, i) => {
+                        const d = new Date();
+                        d.setUTCDate(d.getUTCDate() - (6 - i));
 
-      const formatted = getUTCDate(d);
+                        const formatted = getUTCDate(d);
 
-      return {
-        date: formatted,
-        bookings: bookingMap[formatted] || 0,
-      };
-    });
+                        return {
+                            date: formatted,
+                            bookings: bookingMap[formatted] || 0,
+                        };
+                    });
 
-    // -------------------------
-    // RESPONSE
-    // -------------------------
-    res.send({
-      success: true,
-      data: {
-        users: userStats,
-        bookings: bookingStats,
-        packages: packages.length,
-        reviews: reviews.length,
-        revenue: totalRevenue,
-        bookingTrend: last7Days,
-      },
-    });
+                    res.send({
+                        success: true,
+                        data: {
+                            users: userStats,
+                            bookings: bookingStats,
+                            packages: packages.length,
+                            reviews: reviews.length,
+                            revenue: totalRevenue,
+                            bookingTrend: last7Days,
+                        },
+                    });
 
-  } catch (error) {
-    console.error("Admin stats error:", error);
-    res.status(500).send({
-      success: false,
-      message: "Failed to fetch admin statistics",
-    });
-  }
-});
+                } catch (error) {
+                    console.error("Admin stats error:", error);
+                    res.status(500).send({
+                        success: false,
+                        message: "Failed to fetch admin statistics",
+                    });
+                }
+            }
+        );
 
         app.get("/", (req, res) => {
             res.send("Hello from Tour Travel Server");
         });
-
-
 
     } catch (error) {
         console.log(error);
@@ -1287,8 +1332,6 @@ app.get("/admin-statistics", async (req, res) => {
 
 run();
 
-
-// listen server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

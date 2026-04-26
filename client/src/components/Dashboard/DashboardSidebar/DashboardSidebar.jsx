@@ -17,7 +17,7 @@ const DashboardSidebar = ({ onClose }) => {
   const adminMenuItems = [
     { name: "Admin Home", link: "/dashboard/admin", icon: LayoutDashboard },
     { name: "Add Package", link: "/dashboard/admin/add-package", icon: Package2 },
-
+    { name: "All Package", link: "/dashboard/admin/all-package", icon: Package2 },
     { name: "All Bookings", link: "/dashboard/admin/all-bookings", icon: BookOpen },
     { name: "Manage Users", link: "/dashboard/admin/manage-users", icon: User2 },
   ];

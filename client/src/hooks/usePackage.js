@@ -1,7 +1,8 @@
 // import { useAuth } from "./useAuth";
+import toast from "react-hot-toast";
 import useAxiosPublic from "./useAxiosPublic";
 import useAxiosSecure from "./useAxiosSecure";
-import { useQuery, } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, } from "@tanstack/react-query";
 
 
 
@@ -13,7 +14,6 @@ export const useGetAllPackage = ({ page, limit } = {}) => {
         queryFn: async () => {
             let url = "/packages";
 
-            // 👉 if pagination params exist, use them
             if (page && limit) {
                 url = `/packages?page=${page}&limit=${limit}`;
             }
@@ -42,9 +42,6 @@ export const useGetSinglePackage = (id) => {
 
 export const usePackagesByCategory = (category) => {
     const axiosPublic = useAxiosPublic();
-
-    console.log("category---------------------------------------", category)
-
     return useQuery({
         queryKey: ["packages", category],
         queryFn: async () => {
@@ -70,3 +67,64 @@ export const useCategoryCounts = () => {
         staleTime: 5 * 60 * 1000, // cache for 5 minutes
     });
 }
+
+export const useUpdatePackage = () => {
+    const axiosSecure = useAxiosSecure();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data }) => {
+            const res = await axiosSecure.patch(`/admin/package/${id}`, data);
+            return res.data;
+        },
+
+        onSuccess: (data) => {
+            if (data?.modifiedCount > 0 || data?.success) {
+                toast.success("Package updated successfully!");
+
+                queryClient.invalidateQueries({ queryKey: ["packages"] });
+            } else {
+                toast.error("No changes made");
+            }
+        },
+
+        onError: (error) => {
+            toast.error(
+                error.response?.data?.message || "Update failed"
+            );
+        },
+    });
+};
+
+export const useDeletePackage = () => {
+    const axiosSecure = useAxiosSecure();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id) => {
+            const { data } = await axiosSecure.delete(`/admin/package/${id}`);
+            return data;
+        },
+
+        onSuccess: (data) => {
+            // MongoDB deleteOne → deletedCount
+            if (data?.deletedCount > 0 || data?.success) {
+                toast.success("Package deleted successfully!", {
+                    position: "top-right",
+                });
+
+                // 🔹 correct query key
+                queryClient.invalidateQueries({ queryKey: ["packages"] });
+            } else {
+                toast.error("Failed to delete package");
+            }
+        },
+
+        onError: (error) => {
+            toast.error(
+                error.response?.data?.message || "Delete failed",
+                { position: "top-right" }
+            );
+        },
+    });
+};

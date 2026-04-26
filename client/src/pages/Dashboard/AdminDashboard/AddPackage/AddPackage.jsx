@@ -53,8 +53,6 @@ const AddPackage = () => {
       excluded: data.excluded.map(e => e.value)
     };
 
-    console.log("final data ", packageData);
-
     const response = await axiosSecure.post("/package", packageData)
     console.log("package data response", response);
     if (response.data?.insertedId) {
@@ -129,13 +127,6 @@ const AddPackage = () => {
               disabled={isAddingPckg}
               className="px-6 py-2 bg-primary text-white rounded-lg flex items-center gap-2 disabled:opacity-50"
             >
-              {/* {isSubmitting ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Adding...
-                </>
-              ) : */}
-
               {isAddingPckg ? "Adding..." : "Add Package"}
 
             </button>

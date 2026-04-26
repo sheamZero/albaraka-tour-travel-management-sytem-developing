@@ -1,8 +1,10 @@
 import React from 'react';
 import Container from '../../Shared/Container';
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom';
 
 const ReadyToBookTour = () => {
+    const navigate = useNavigate();
     return (
         <section className='my-16 md:my-24'>
 
@@ -22,7 +24,9 @@ const ReadyToBookTour = () => {
                     <p className="text-text mb-4">
                         Join thousands of happy travelers who chose Albaraka Tours
                     </p>
-                    <button className="px-8 py-3 text-lg bg-primary text-primary-foreground rounded-full font-semibold hover:opacity-90 transition-all hover:scale-105">
+                    <button 
+                    onClick={()=>navigate("/categories")}
+                    className="px-8 py-3 text-lg bg-primary text-primary-foreground rounded-full font-semibold hover:opacity-90 transition-all hover:scale-105">
                         Book Your Tour Now
                     </button>
                 </Container>

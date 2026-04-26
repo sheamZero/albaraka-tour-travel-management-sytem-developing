@@ -8,6 +8,7 @@ import { uploadImage } from "../../../../utils/imageUpload";
 import { successAction } from "../../../../utils/swal";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { MapPlus } from "lucide-react";
 
 const AddPackage = () => {
   const axiosSecure = useAxiosSecure();
@@ -66,9 +67,21 @@ const AddPackage = () => {
 
   return (
     <div className="max-w-7xl py-6 px-6 lg:px-20">
-      <div className="space-y-2">
-        <h2 className="text-5xl font-semibold text-secondary">Add a New Package</h2>
-        <p className="text-text text-xl">Create an exciting travel package for your customers</p>
+      <div className="bg-primary/10 p-6 rounded-2xl shadow-sm border flex items-center justify-between mb-6">
+
+        {/* Left */}
+        <div>
+          <h1 className="text-3xl font-bold text-secondary flex items-center gap-2">
+            <MapPlus className="w-6 h-6 text-primary" />
+            Add New Package
+          </h1>
+
+          <p className="text-text mt-1">
+            Create and publish a new travel package with itinerary, pricing, and availability.
+          </p>
+        </div>
+
+
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>

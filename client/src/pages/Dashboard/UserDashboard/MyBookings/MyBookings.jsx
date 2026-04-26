@@ -69,13 +69,14 @@ const MyBookings = () => {
 
   return (
     <section className="px-4 lg:px-10 py-6">
-      {/* Header with Dropdown */}
-      <div className="flex items-center gap-10 mb-6">
-        <h1 className="text-2xl text-secondary font-bold">
-          My Bookings ({filteredBookings.length})
-        </h1>
+      <div className="bg-primary/10 text-secondary p-5 rounded-xl shadow text-left flex  gap-10 mb-6">
+        <div className=" ">
+          <h2 className="text-xl font-bold">My Bookings</h2>
+          <p className="text-sm opacity-80 mt-1">
+            Total Transactions: {filteredBookings.length}
+          </p>
+        </div>
 
-        {/* Dropdown Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="gap-2">
@@ -97,6 +98,7 @@ const MyBookings = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
 
       {/* Empty State */}
       {

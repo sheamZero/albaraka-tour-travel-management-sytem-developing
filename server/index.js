@@ -9,6 +9,7 @@ const SSLCommerzPayment = require('sslcommerz-lts')
 const { verifyToken } = require("./middlewares/verifyToken");
 const { verifyUserEmail } = require("./middlewares/verifyUserEmail");
 const { verifyAdmin } = require("./middlewares/verifyAdmin");
+const nodemailer = require("nodemailer");
 
 const port = process.env.PORT || 9000;
 const app = express();
@@ -31,8 +32,45 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-const uri =
-    "mongodb+srv://tourTravel:yHX3Fp8jyt2gZiRe@cluster0.yigerrh.mongodb.net/?appName=Cluster0";
+const sendEmail = async (emailAddress, emailData) => {
+    // Create a transporter using SMTP
+    const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
+
+    transporter.verify(function (error, success) {
+        if (error) {
+            console.log("error inside verify", error);
+        } else {
+            console.log("Server is ready to take our message!");
+        }
+    });
+
+    const mailBody = {
+        from: `"Albaraka" <${process.env.SMTP_USER}>`, // sender address
+        to: emailAddress,
+        subject: emailData.subject,
+        html: emailData.message,
+    };
+
+    transporter.sendMail(mailBody, (error, info) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log("Email send: " + info.response);
+        }
+    });
+
+};
+
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yigerrh.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
     serverApi: {
@@ -64,153 +102,102 @@ async function run() {
 
 
 
-        // sslcommerz
+        // payments related apis------------------
         //sslcommerz init
-        app.post('/create-sslcz-payment', async (req, res) => {
-            try {
-                const { bookingId } = req.body;
+        app.post('/create-sslcz-payment',
+            verifyToken,
+            verifyUserEmail,
+            async (req, res) => {
+                try {
+                    const { bookingId } = req.body;
 
-                if (!bookingId) {
-                    return res.status(400).send({ error: "Booking ID is required" });
+                    if (!bookingId) {
+                        return res.status(400).send({ error: "Booking ID is required" });
+                    }
+
+                    const booking = await bookingCollections.findOne({
+                        _id: new ObjectId(bookingId),
+                    });
+
+                    if (!booking) {
+                        return res.status(404).send({ error: "Booking not found" });
+                    }
+
+                    if (booking.paymentStatus === "paid") {
+                        return res.status(400).send({ error: "Already paid" });
+                    }
+
+                    // if (booking.status !== "pending") {
+                    //     return res.status(400).send({ error: "Invalid booking status" });
+                    // }
+
+                    const amount = Number(booking.totalPrice);
+                    if (!amount || amount <= 0) {
+                        return res.status(400).send({ error: "Invalid amount" });
+                    }
+
+                    const transaction_id = `${booking._id}-${Date.now()}`;
+
+                    const data = {
+                        total_amount: amount,
+                        currency: "BDT",
+                        tran_id: transaction_id,
+
+                        success_url: `${process.env.BASE_URL}/payment-success`,
+                        fail_url: `${process.env.BASE_URL}/payment-fail`,
+                        cancel_url: `${process.env.BASE_URL}/payment-cancel`,
+                        ipn_url: `${process.env.BASE_URL}/ipn`,
+
+                        shipping_method: "NO",
+                        product_name: booking.title,
+                        product_category: booking.category,
+                        product_profile: "general",
+
+                        cus_name: booking.userName || "Customer",
+                        cus_email: booking.userEmail || "test@email.com",
+                        cus_add1: "Dhaka",
+                        cus_city: "Dhaka",
+                        cus_country: "Bangladesh",
+                        cus_phone: booking.phone || "01700000000",
+
+                        ship_name: booking.userName || "Customer",
+                        ship_add1: "Dhaka",
+                        ship_city: "Dhaka",
+                        ship_country: "Bangladesh",
+                    };
+
+                    const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
+
+                    const apiResponse = await sslcz.init(data);
+
+                    if (!apiResponse?.GatewayPageURL) {
+                        return res.status(500).send({ error: "Failed to get gateway URL" });
+                    }
+
+                    // insert inital payments with pending status
+                    const result = await paymentCollections.insertOne({
+                        bookingId: booking._id,
+                        title: booking.title,
+                        tran_id: transaction_id,
+                        userName: booking.userName,
+                        userEmail: booking.userEmail,
+                        amount,
+                        status: "pending",
+                        createdAt: new Date(),
+                    });
+
+                    console.log(result);
+
+                    res.send({ url: apiResponse.GatewayPageURL, result });
+
+                } catch (err) {
+                    console.log(err.message)
+                    res.send(err.message)
                 }
 
-                const booking = await bookingCollections.findOne({
-                    _id: new ObjectId(bookingId),
-                });
-
-                if (!booking) {
-                    return res.status(404).send({ error: "Booking not found" });
-                }
-
-                if (booking.paymentStatus === "paid") {
-                    return res.status(400).send({ error: "Already paid" });
-                }
-
-                // if (booking.status !== "pending") {
-                //     return res.status(400).send({ error: "Invalid booking status" });
-                // }
-
-                const amount = Number(booking.totalPrice);
-                if (!amount || amount <= 0) {
-                    return res.status(400).send({ error: "Invalid amount" });
-                }
-
-                const transaction_id = `${booking._id}-${Date.now()}`;
-
-                const data = {
-                    total_amount: amount,
-                    currency: "BDT",
-                    tran_id: transaction_id,
-
-                    success_url: `${process.env.BASE_URL}/payment-success`,
-                    fail_url: `${process.env.BASE_URL}/payment-fail`,
-                    cancel_url: `${process.env.BASE_URL}/payment-cancel`,
-                    ipn_url: `${process.env.BASE_URL}/ipn`,
-
-                    shipping_method: "NO",
-                    product_name: booking.title,
-                    product_category: booking.category,
-                    product_profile: "general",
-
-                    cus_name: booking.userName || "Customer",
-                    cus_email: booking.userEmail || "test@email.com",
-                    cus_add1: "Dhaka",
-                    cus_city: "Dhaka",
-                    cus_country: "Bangladesh",
-                    cus_phone: booking.phone || "01700000000",
-
-                    ship_name: booking.userName || "Customer",
-                    ship_add1: "Dhaka",
-                    ship_city: "Dhaka",
-                    ship_country: "Bangladesh",
-                };
-
-                const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
-
-                const apiResponse = await sslcz.init(data);
-
-                if (!apiResponse?.GatewayPageURL) {
-                    return res.status(500).send({ error: "Failed to get gateway URL" });
-                }
-
-                // insert inital payments with pending status
-                const result = await paymentCollections.insertOne({
-                    bookingId: booking._id,
-                    tran_id: transaction_id,
-                    userName: booking.userName,
-                    userEmail: booking.userEmail,
-                    amount,
-                    status: "pending",
-                    createdAt: new Date(),
-                });
-
-                console.log(result)
-
-                res.send({ url: apiResponse.GatewayPageURL, result });
-
-            } catch (err) {
-                console.log(err.message)
-                res.send(err.message)
             }
+        )
 
-        })
-
-        // app.post("/payment-success", async (req, res) => {
-        //     try {
-        //         const successData = req.body;
-        //         const { tran_id, status, } = successData
-        //         console.log("success data", successData)
-
-        //         if (!tran_id) {
-        //             return res.status(400).send("Missing tran_id");
-        //         }
-
-        //         const payment = await paymentCollections.findOne({ tran_id });
-
-        //         if (!payment) {
-        //             return res.status(404).send("Payment not found");
-        //         }
-
-        //         // 🔐 Already processed?
-        //         if (payment.status === "paid") {
-        //             return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
-        //         }
-
-        //         const updatePayResult = await paymentCollections.updateOne(
-        //             { tran_id },
-        //             {
-        //                 $set: {
-        //                     status: "paid",
-        //                     paidAt: new Date(),
-        //                     amount: successData.amount,
-        //                     store_amount: successData.store_amount,
-        //                     currency: successData.currency,
-        //                     card_brand: successData.card_brand,
-        //                     card_issuer: successData.card_issuer,
-        //                     card_issuer_country: successData.card_issuer_country,
-        //                 },
-        //             }
-        //         );
-
-        //         const bookingUpdat = await bookingCollections.updateOne(
-        //             { _id: new ObjectId(payment.bookingId) },
-        //             {
-        //                 $set: {
-        //                     paymentStatus: "paid",
-        //                     status: "approved",
-        //                 },
-        //             }
-        //         );
-        //         console.log("payupdae", updatePayResult)
-        //         console.log("bookingupdate", bookingUpdat);
-
-        //         res.redirect(`${process.env.CLIENT_URL}/payment-success`);
-
-        //     } catch (err) {
-        //         console.error(err);
-        //         res.sendStatus(500);
-        //     }
-        // });
         app.post("/payment-success", async (req, res) => {
             try {
                 const successData = req.body;
@@ -277,6 +264,55 @@ async function run() {
                     }
                 );
 
+
+                const booking = await bookingCollections.findOne({
+                    _id: new ObjectId(payment.bookingId),
+                });
+
+                // Send payment success email 
+                const emailData = {
+                    subject: `Payment Successful - ${booking.title}`,
+                    message: `
+                    <div style="font-family: Arial; line-height:1.6; color:#333;">
+
+                    <h2 style="color:green;">✅ Payment Successful</h2>
+
+                    <p>Hi <strong>${booking.userName}</strong>,</p>
+
+                    <p>Your payment has been successfully completed. Your booking is now <strong>confirmed</strong>.</p>
+
+                    <hr/>
+
+                    <h3>📦 Booking Details</h3>
+                    <p><strong>Package:</strong> ${booking.title}</p>
+                    <p><strong>Location:</strong> ${booking.location}</p>
+                    <p><strong>Travel Date:</strong> ${booking.startDate} → ${booking.endDate}</p>
+
+                    <h3>💳 Payment Info</h3>
+                    <p><strong>Transaction ID:</strong> ${tran_id}</p>
+                    <p><strong>Validation ID:</strong> ${val_id}</p>
+                    <p><strong>Amount Paid:</strong> ${successData.amount} ${successData.currency}</p>
+                    <p><strong>Payment Method:</strong> ${successData.card_type}</p>
+                    <p><strong>Card Issuer:</strong> ${successData.card_issuer}</p>
+                    <p><strong>Date:</strong> ${successData.tran_date}</p>
+
+                    <hr/>
+
+                    <p>Keep this email for your records.</p>
+
+                    <br/>
+
+                    <p>Best regards,<br/>
+                    <strong>Albaraka Travel Team</strong></p>
+
+                    </div>
+                    `,
+                };
+
+                sendEmail(booking.userEmail, emailData)
+                    .then(() => console.log("Email sent"))
+                    .catch((err) => console.error("Email error:", err));
+
                 return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
 
             } catch (err) {
@@ -330,6 +366,43 @@ async function run() {
             } catch (err) {
                 console.error(err);
                 res.status(500).send("Cancel handler error");
+            }
+        });
+
+
+        app.get("/my-payments", verifyToken, verifyUserEmail, async (req, res) => {
+            try {
+                const email = req.verifiedEmail;
+
+                if (!email) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Email is required"
+                    });
+                }
+
+                const payments = await paymentCollections.find({ userEmail: email }).toArray();
+
+                if (!payments || payments.length === 0) {
+                    return res.status(200).json({
+                        success: true,
+                        message: "No payments found",
+                        data: []
+                    });
+                }
+
+                res.status(200).json({
+                    success: true,
+                    message: "Payments retrieved successfully",
+                    data: payments
+                });
+
+            } catch (error) {
+                console.error("Error fetching payments:", error);
+                res.status(500).json({
+                    success: false,
+                    message: "Internal server error"
+                });
             }
         });
 
@@ -625,7 +698,8 @@ async function run() {
         // add booking
         app.post("/package/booking", verifyToken, verifyUserEmail, async (req, res) => {
             const bookedItem = req.body;
-            console.log("booked item", bookedItem)
+            const email = req.verifiedEmail;
+            // console.log("booked item", bookedItem, email)
 
             if (bookedItem.numberOfPeople < 1 || bookedItem.numberOfPeople > 20) {
                 return res.status(400).json({
@@ -652,20 +726,6 @@ async function run() {
                 });
             }
 
-
-            // const existingBooking = await db.collection('bookings').findOne({
-            //     packageId: bookedItem.packageId,
-            //     userEmail: bookedItem.userEmail,
-            //     status: { $in: ['pending', 'confirmed'] }
-            // });
-
-            // if (existingBooking) {
-            //     return res.status(409).json({
-            //         success: false,
-            //         message: "You already have an active booking for this package"
-            //     });
-            // }
-
             const bookingDocument = {
                 ...bookedItem,
                 status: 'pending', // pending, confirmed, cancelled, completed
@@ -673,7 +733,62 @@ async function run() {
             };
 
             const result = await bookingCollections.insertOne(bookingDocument);
-            res.send(result)
+
+            // sending email
+            const emailData = {
+                subject: `Booking Received - ${bookedItem.title}`,
+                message: `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+      
+      <h2 style="color: #2c3e50;">Booking Confirmed (Pending Payment)</h2>
+
+      <p>Hi <strong>${bookedItem.userName}</strong>,</p>
+
+      <p>Thank you for booking with <strong>Albaraka Travel</strong>. Your booking request has been successfully received.</p>
+
+      <hr/>
+
+      <h3>📦 Package Details</h3>
+      <p><strong>Package:</strong> ${bookedItem.title}</p>
+      <p><strong>Location:</strong> ${bookedItem.location}</p>
+      <p><strong>Category:</strong> ${bookedItem.category}</p>
+
+      <h3>📅 Travel Dates</h3>
+                <p><strong>Start:</strong> ${bookedItem.startDate}</p>
+                <p><strong>End:</strong> ${bookedItem.endDate}</p>
+
+                <h3>👥 Travelers</h3>
+                <p><strong>Number of People:</strong> ${bookedItem.numberOfPeople}</p>
+
+                <h3>💰 Payment Summary</h3>
+                <p><strong>Price per person:</strong> $${bookedItem.price}</p>
+                <p><strong>Total Price:</strong> $${bookedItem.totalPrice}</p>
+                <p style="color: orange;"><strong>Status:</strong> Pending Payment</p>
+
+                <hr/>
+
+                <p>Please complete your payment to confirm this booking.</p>
+
+                <p style="margin-top: 20px;">
+                  <strong>Next Step:</strong><br/>
+                  Go to your dashboard and complete payment to secure your spot.
+                </p>
+
+                <br/>
+
+                <p>Best regards,<br/>
+                <strong>Albaraka Travel Team</strong></p>
+
+                 </div>
+                `,
+            };
+
+            await sendEmail(email, emailData);
+
+            res.send({
+                emailSend: true,
+                result
+            })
 
         })
 
@@ -966,6 +1081,198 @@ async function run() {
         });
 
 
+        // user statistics
+        app.get(
+            "/userStatistics",
+            verifyToken,
+            verifyUserEmail,
+            async (req, res) => {
+                try {
+                    const userEmail = req.verifiedEmail;
+
+                    const bookings = await bookingCollections
+                        .find({ userEmail })
+                        .toArray();
+
+                    // -------------------------
+                    // 1. STATS
+                    // -------------------------
+                    const total = bookings.length;
+
+                    const completed = bookings.filter(
+                        (b) => b.status === "completed"
+                    ).length;
+
+                    const pending = bookings.filter(
+                        (b) => b.status === "pending"
+                    ).length;
+
+                    const totalPay = bookings.reduce((sum, b) => {
+                        return sum + Number(b.totalPrice || 0);
+                    }, 0);
+
+                    const stats = {
+                        total,
+                        completed,
+                        pending,
+                        totalPay,
+                    };
+
+                    // -------------------------
+                    // 2. CHART DATA
+                    // -------------------------
+                    const monthlyData = {};
+
+                    for (const booking of bookings) {
+                        const date = new Date(booking.bookingDate);
+                        const key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+
+                        if (!monthlyData[key]) {
+                            monthlyData[key] = {
+                                month: key,
+                                completed: 0,
+                                pending: 0,
+                                confirmed: 0,
+                            };
+                        }
+
+                        if (monthlyData[key][booking.status] !== undefined) {
+                            monthlyData[key][booking.status]++;
+                        }
+                    }
+
+                    const bookingTrendData = Object.values(monthlyData);
+
+                    // -------------------------
+                    // 3. RECENT BOOKINGS (FIX ADDED)
+                    // -------------------------
+                    const recentBookings = bookings
+                        .slice(-4) // last 5 bookings
+                        .reverse() // newest first
+                        .map((b, index) => ({
+                            id: b._id || index,
+                            title: b.title || "Unknown Trip",
+                            status: b.status,
+                        }));
+
+                    console.log("recent bookings ", recentBookings)
+                    // -------------------------
+                    // RESPONSE
+                    // -------------------------
+                    res.send({
+                        stats,
+                        bookingTrendData,
+                        recentBookings,
+                    });
+                } catch (error) {
+                    res.status(500).send({ error: error.message });
+                }
+            }
+        );
+
+app.get("/admin-statistics", async (req, res) => {
+  try {
+    const users = await userCollections.find().toArray();
+    const packages = await packageCollections.find().toArray();
+    const bookings = await bookingCollections.find().toArray();
+    const reviews = await reviewCollections.find().toArray();
+    const payments = await paymentCollections.find().toArray();
+
+    // -------------------------
+    // BOOKING STATS (optimized)
+    // -------------------------
+    const bookingStats = {
+      total: bookings.length,
+      pending: 0,
+      completed: 0,
+      rejected: 0,
+    };
+
+    for (const b of bookings) {
+      if (b.status === "pending") bookingStats.pending++;
+      else if (b.status === "completed") bookingStats.completed++;
+      else if (b.status === "rejected") bookingStats.rejected++;
+    }
+
+    // -------------------------
+    // USER STATS
+    // -------------------------
+    const userStats = {
+      total: users.length,
+      admins: 0,
+      users: 0,
+    };
+
+    for (const u of users) {
+      if (u.role === "admin") userStats.admins++;
+      else userStats.users++;
+    }
+
+    // -------------------------
+    // REVENUE
+    // -------------------------
+    let totalRevenue = 0;
+
+    for (const p of payments) {
+      totalRevenue += Number(p.amount) || 0;
+    }
+
+    // -------------------------
+    // SAFE UTC DATE FORMATTER
+    // -------------------------
+    const getUTCDate = (date) => {
+      const d = new Date(date);
+      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+    };
+
+    // -------------------------
+    // BOOKING TREND MAP (FAST O(n))
+    // -------------------------
+    const bookingMap = {};
+
+    for (const b of bookings) {
+      const dateSource = b.createdAt || b.bookingDate;
+      if (!dateSource) continue;
+
+      const key = getUTCDate(dateSource);
+      bookingMap[key] = (bookingMap[key] || 0) + 1;
+    }
+
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() - (6 - i));
+
+      const formatted = getUTCDate(d);
+
+      return {
+        date: formatted,
+        bookings: bookingMap[formatted] || 0,
+      };
+    });
+
+    // -------------------------
+    // RESPONSE
+    // -------------------------
+    res.send({
+      success: true,
+      data: {
+        users: userStats,
+        bookings: bookingStats,
+        packages: packages.length,
+        reviews: reviews.length,
+        revenue: totalRevenue,
+        bookingTrend: last7Days,
+      },
+    });
+
+  } catch (error) {
+    console.error("Admin stats error:", error);
+    res.status(500).send({
+      success: false,
+      message: "Failed to fetch admin statistics",
+    });
+  }
+});
 
         app.get("/", (req, res) => {
             res.send("Hello from Tour Travel Server");

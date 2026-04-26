@@ -12,7 +12,6 @@ const DashboardSidebar = ({ onClose }) => {
     { name: "My Bookings", link: "/dashboard/user/my-bookings", icon: Calendar },
     { name: "Payment History", link: "/dashboard/user/payment-history", icon: CreditCard },
     { name: "My Reviews", link: "/dashboard/user/my-reviews", icon: Star },
-    { name: "Profile", link: "/dashboard/user/profile", icon: User },
   ];
 
   const adminMenuItems = [

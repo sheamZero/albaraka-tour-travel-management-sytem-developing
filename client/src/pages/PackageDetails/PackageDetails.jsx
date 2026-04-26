@@ -88,7 +88,7 @@ const PackageDetails = () => {
 
           packageBooking(bookingData, {
             onSuccess: (data) => {
-              if (data.insertedId) {
+              if (data.result?.insertedId) {
 
                 Swal.fire({
                   title: "Success!",

@@ -23,11 +23,14 @@ import MyReviews from "../pages/Dashboard/UserDashboard/MyReviews/MyReviews";
 import SuccessPayment from "../pages/Dashboard/UserDashboard/Payments/SuccessPayment";
 import CancelPayment from "../pages/Dashboard/UserDashboard/Payments/CancelPayment";
 import FailedPayment from "../pages/Dashboard/UserDashboard/Payments/FailedPayment";
+import MyProfile from "../pages/MyProfile/MyProfile";
+import ErrorPage from "../pages/ErrorPage/ErrorPage";
 
 const router = createBrowserRouter([
     {
         path: "/",
         element: <MainLayout />,
+        errorElement: <ErrorPage/>,
         children: [
             {
                 path: "/",
@@ -62,6 +65,10 @@ const router = createBrowserRouter([
             {
                 path: "/signin",
                 element: <SignIn />
+            },
+            {
+                path: "/my-profile",
+                element: <MyProfile/>
             },
             {
                 path: "/signup",

@@ -4,6 +4,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'
 
 import banner_1 from '../../../assets/images/banner_1.png';
 import banner_2 from '../../../assets/images/banner_2.png';
@@ -42,6 +43,7 @@ const Hero = () => {
                 "Save up to 40% on selected packages and start your dream journey today."
         }
     ];
+    const navigate = useNavigate();
     return (
         <section className="relative overflow-hidden">
             <Swiper
@@ -104,6 +106,10 @@ const Hero = () => {
                                         className="flex items-center justify-center gap-4 flex-wrap"
                                     >
                                         <motion.button
+                                            onClick={() => {
+                                                const sec = document.getElementById("popular-packages");
+                                                sec?.scrollIntoView({ behavior: "smooth" });
+                                            }}
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             className="px-8 py-4 bg-primary text-primary-foreground rounded-full font-bold text-lg hover:shadow-lg transition-all"
@@ -112,6 +118,7 @@ const Hero = () => {
                                         </motion.button>
 
                                         <motion.button
+                                            onClick={() => navigate("/packages")}
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             className="px-8 py-4 border-2 border-primary text-primary rounded-full font-bold text-lg hover:bg-primary hover:border-none hover:text-white transition-all"

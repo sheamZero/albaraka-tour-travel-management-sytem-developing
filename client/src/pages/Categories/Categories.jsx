@@ -5,9 +5,10 @@ import PackageCard from "../../components/Shared/PackageCard";
 import { Mountain, Umbrella, Landmark, PawPrint } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { usePackagesByCategory } from "../../hooks/usePackage";
+import { motion } from 'framer-motion'
 
 const Categories = () => {
-         const [searchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const categoryFromURL = searchParams.get("category") || "beach";
 
     const [activeTab, setActiveTab] = useState(categoryFromURL);
@@ -22,7 +23,6 @@ const Categories = () => {
         { id: "wildlife", name: "Wildlife", icon: PawPrint }
     ];
 
-
     useEffect(() => {
         setActiveTab(categoryFromURL);
     }, [categoryFromURL]);
@@ -30,6 +30,20 @@ const Categories = () => {
     return (
         <section className="min-h-screen py-12 bg-gray-50">
             <Container>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-10 space-y-4"
+                >
+                    <h2 className="text-3xl md:text-4xl font-bold text-secondary">
+                        Browse by Category
+                    </h2>
+                    <p className="text-text max-w-2xl mx-auto">
+                        Not sure where to start? Choose a category and discover trips tailored to your travel style.
+                    </p>
+                </motion.div>
 
                 <Tabs
                     value={activeTab}

@@ -1,151 +1,195 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, CreditCard, MapPin, Heart } from "lucide-react";
+import { SmilePlus } from "lucide-react";
+import React from "react";
+import {
+  FaSuitcaseRolling,
+  FaCheckCircle,
+  FaClock,
+} from "react-icons/fa";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import useAxiosSecure from "../../../../hooks/useAxiosSecure";
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from "react-router-dom";
 
 const UserHome = () => {
-  return (
-    <div className="space-y-6 px-4 lg:px-10">
+  const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
 
-      {/* Welcome Section */}
-      <div className="bg-primary/10 p-6 rounded-xl">
-        <h2 className="text-2xl font-bold text-primary">
-          Welcome back, Traveler 👋
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Manage your trips, bookings, and favorite destinations here.
+  const { data, isLoading } = useQuery({
+    queryKey: ["user-statistic"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/userStatistics");
+      return res.data;
+    },
+  });
+
+  if (isLoading) return <p>loading...</p>;
+
+  const stats = data.stats;
+  const bookingTrendData = data.bookingTrendData || [];
+  const recentBookings = data.recentBookings || []
+  const COLORS = ["#22c55e", "#facc15"];
+
+  return (
+    <div className="p-6 space-y-6">
+
+
+      <div className="bg-primary/10 p-6 rounded-2xl shadow-sm border">
+        <h1 className="text-2xl font-bold text-secondary flex items-center gap-2">
+          <span>Welcome back</span>
+          <SmilePlus className="text-yellow-500" />
+        </h1>
+        <p className="text-text mt-1">
+          Manage your trips, bookings and reviews from here.
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* 🔹 Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Trips
-            </CardTitle>
-            <MapPin className="w-5 h-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">12</p>
-            <p className="text-xs text-muted-foreground">
-              Trips booked so far
-            </p>
-          </CardContent>
-        </Card>
+        {/* Total Bookings */}
+        <div className="p-5 rounded-xl shadow-sm text-white flex items-center gap-4 bg-linear-to-r from-blue-500 to-indigo-500">
+          <FaSuitcaseRolling className="text-2xl" />
+          <div>
+            <p className="text-sm">Total Bookings</p>
+            <h2 className="text-xl font-bold">{stats.total}</h2>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Upcoming Trips
-            </CardTitle>
-            <Calendar className="w-5 h-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">3</p>
-            <p className="text-xs text-muted-foreground">
-              Upcoming travel plans
-            </p>
-          </CardContent>
-        </Card>
+        {/* Completed */}
+        <div className="p-5 rounded-xl shadow-sm text-white flex items-center gap-4 bg-linear-to-r from-green-500 to-emerald-600">
+          <FaCheckCircle className="text-2xl" />
+          <div>
+            <p className="text-sm ">Completed</p>
+            <h2 className="text-xl font-bold">{stats.completed}</h2>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Payments
-            </CardTitle>
-            <CreditCard className="w-5 h-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">$2,400</p>
-            <p className="text-xs text-muted-foreground">
-              Total spent on trips
-            </p>
-          </CardContent>
-        </Card>
+        {/* Pending */}
+        <div className="p-5 rounded-xl shadow-sm text-white flex items-center gap-4 bg-linear-to-r from-orange-400 to-orange-500">
+          <FaClock className="text-2xl" />
+          <div>
+            <p className="text-sm">Pending</p>
+            <h2 className="text-xl font-bold">{stats.pending}</h2>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Wishlist
-            </CardTitle>
-            <Heart className="w-5 h-5 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">5</p>
-            <p className="text-xs text-muted-foreground">
-              Saved destinations
-            </p>
-          </CardContent>
-        </Card>
+        {/* Total Spent */}
+        <div className="p-5 rounded-xl shadow-sm text-white flex items-center gap-4 bg-linear-to-r from-purple-500 to-pink-500">
+          <span className="text-2xl font-bold ">$</span>
+          <div>
+            <p className="text-sm">Total Spent</p>
+            <h2 className="text-xl font-bold">${stats.totalPay}</h2>
+          </div>
+        </div>
 
       </div>
 
-      {/* Upcoming Trips */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Trips</CardTitle>
-        </CardHeader>
+      {/* 🔹 Chart + Recent Bookings */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <CardContent>
-          <div className="space-y-4">
+        {/* 📊 Chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+          <h2 className="text-lg font-semibold text-secondary mb-4">
+            Booking Trend
+          </h2>
 
-            <div className="flex items-center justify-between border rounded-lg p-4">
-              <div>
-                <h4 className="font-medium">Cox’s Bazar Beach Tour</h4>
-                <p className="text-sm text-gray-500">
-                  12 June - 15 June
-                </p>
-              </div>
+          <div className="w-full h-64">
+            <ResponsiveContainer>
+              <LineChart data={bookingTrendData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
 
-              <span className="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full">
-                Confirmed
-              </span>
-            </div>
+                <Line
+                  type="monotone"
+                  dataKey="completed"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                />
 
-            <div className="flex items-center justify-between border rounded-lg p-4">
-              <div>
-                <h4 className="font-medium">Sajek Valley Adventure</h4>
-                <p className="text-sm text-gray-500">
-                  2 July - 4 July
-                </p>
-              </div>
+                <Line
+                  type="monotone"
+                  dataKey="pending"
+                  stroke="#facc15"
+                  strokeWidth={2}
+                />
 
-              <span className="text-sm bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
-                Pending
-              </span>
-            </div>
-
+                <Line
+                  type="monotone"
+                  dataKey="confirmed"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Recent Bookings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Bookings</CardTitle>
-        </CardHeader>
+        {/* 📦 Recent Bookings */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+          <h2 className="text-lg font-semibold mb-4">
+            Recent Bookings
+          </h2>
 
-        <CardContent>
           <div className="space-y-3">
+            {recentBookings.map((booking) => (
+              <div
+                key={booking.id}
+                className="flex justify-between items-center border p-3 rounded-lg"
+              >
+                <div>
+                  <p className="font-medium">{booking.title}</p>
 
-            <div className="flex justify-between border rounded-lg p-3">
-              <span>Bandarban Hill Track</span>
-              <span className="text-sm text-gray-500">Paid</span>
-            </div>
+                  {booking.status === "completed" && (
+                    <button className="text-xs text-primary mt-1">
+                      Write Review
+                    </button>
+                  )}
+                </div>
 
-            <div className="flex justify-between border rounded-lg p-3">
-              <span>Saint Martin Island</span>
-              <span className="text-sm text-gray-500">Paid</span>
-            </div>
-
-            <div className="flex justify-between border rounded-lg p-3">
-              <span>Sundarbans Wildlife Tour</span>
-              <span className="text-sm text-gray-500">Pending</span>
-            </div>
-
+                <span
+                  className={`text-xs px-3 py-1 rounded-full ${booking.status === "completed"
+                    ? "bg-green-100 text-green-600"
+                    : "bg-yellow-100 text-yellow-600"
+                    }`}
+                >
+                  {booking.status}
+                </span>
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* 🔹 CTA */}
+      <div className="bg-primary text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">
+            Explore new destinations 🌍
+          </h2>
+          <p className="text-sm opacity-90">
+            Find your next adventure and book your dream trip.
+          </p>
+        </div>
+
+        <button 
+        onClick={()=>navigate("/packages")}
+        className="bg-white text-primary px-5 py-2 rounded-full font-semibold hover:opacity-90">
+          Browse Packages
+        </button>
+      </div>
 
     </div>
   );

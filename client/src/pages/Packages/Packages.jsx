@@ -7,7 +7,7 @@ import { useGetAllPackage } from "../../hooks/usePackage";
 const Packages = () => {
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useGetAllPackage({page, limit:3});
+  const { data, isLoading } = useGetAllPackage({ page, limit: 3 });
 
   if (isLoading) return <p>loading.......</p>;
 
@@ -25,9 +25,15 @@ const Packages = () => {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-secondary mb-4">
+          <h2
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-secondary mb-4"
+          >
             All Tour Packages
           </h2>
+          <p className="text-text max-w-2xl mx-auto">
+            Discover handpicked tour packages across breathtaking destinations.
+            Choose the perfect trip that fits your budget, time, and travel style.
+          </p>
         </motion.div>
 
         {/* packages grid */}
@@ -56,9 +62,8 @@ const Packages = () => {
             <button
               key={i}
               onClick={() => setPage(i + 1)}
-              className={`px-4 py-2 rounded ${
-                page === i + 1 ? "bg-primary text-white" : "bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded ${page === i + 1 ? "bg-primary text-white" : "bg-gray-200"
+                }`}
             >
               {i + 1}
             </button>

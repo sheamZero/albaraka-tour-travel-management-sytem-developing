@@ -19,7 +19,7 @@ const MyReviews = () => {
     },
   });
 
-   const renderStars = (rating) => {
+  const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
     const hasHalf = rating % 1 !== 0;
 
@@ -54,12 +54,12 @@ const MyReviews = () => {
   return (
     <section className="px-4 lg:px-10 py-6">
       {/* Header */}
-      <div className="mb-6">
+      <div className="bg-primary/10 p-6 rounded-2xl shadow-sm border mb-6">
         <h2 className="text-2xl font-semibold text-secondary">
           My Reviews
         </h2>
         <p className="text-sm text-text">
-          Total: {reviews.length}
+          Total Reviews: {reviews.length}
         </p>
       </div>
 

@@ -3,6 +3,7 @@ import { useDeleteBooking, useGetAllBookings, useUpdateBookingStatus } from "../
 
 import BookingTableRows from "../../../../components/Dashboard/AllBookings/BookingTableRows";
 import { confirmAction } from "../../../../utils/swal";
+import { CalendarCheck } from "lucide-react";
 
 const AllBookings = () => {
     const { data, isLoading } = useGetAllBookings();
@@ -17,10 +18,6 @@ const AllBookings = () => {
         );
     const bookings = data?.data || [];
 
-    // approve
-    // const handleApproveBooking = (id) => {
-    //     updateStatus({ id, status: "approved" });
-    // }
     // reject
     const handleRejectBooking = (id) => {
         updateStatus({ id, status: "rejected" });
@@ -44,10 +41,27 @@ const AllBookings = () => {
     return (
         <div className="p-6">
             {/* Header */}
-            <div className="mb-6">
-                <h2 className="text-3xl font-bold text-secondary">
-                    All Bookings (    {bookings.length})
-                </h2>
+            <div className="bg-primary/10 p-6 rounded-2xl shadow-sm border mb-6 flex items-center justify-between">
+
+                {/* Left */}
+                <div>
+                    <h1 className="text-2xl font-bold text-secondary flex items-center gap-2">
+                        <CalendarCheck className="text-primary w-6 h-6" />
+                        All Bookings
+                    </h1>
+
+                    <p className="text-text mt-1">
+                        Manage your trips, bookings and reviews from here.
+                    </p>
+                </div>
+
+                {/* Right (Total Count) */}
+                <div className="text-right">
+                    <p className="text-sm text-text">Total Bookings</p>
+                    <h2 className="text-2xl font-bold text-primary">
+                        {bookings.length}
+                    </h2>
+                </div>
 
             </div>
 

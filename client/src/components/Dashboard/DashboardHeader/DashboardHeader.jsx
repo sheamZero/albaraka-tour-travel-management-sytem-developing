@@ -1,4 +1,4 @@
-import { Bell, SquareChevronLeft } from "lucide-react";
+import { Bell, SquareChevronLeft, SquareChevronRight } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import useAdmin from "../../../hooks/useAdmin";
 
@@ -20,7 +20,7 @@ const {isAdmin} = useAdmin();
                     onClick={toggleSidebar}
                     className="lg:hidden text-2xl text-primary"
                 >
-                    <SquareChevronLeft />
+                    <SquareChevronRight />
                 </button>
 
                 <h2 className="hidden md:block text-2xl font-bold text-primary">

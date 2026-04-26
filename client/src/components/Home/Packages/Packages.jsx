@@ -83,7 +83,7 @@ const Packages = () => {
     if (isPackageLoading) return <p>loading...</p>
 
     return (
-        <section className='py-16 md:py-24 bg-white'>
+        <section id="popular-packages" className='py-16 md:py-24 bg-white'>
             <Container>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

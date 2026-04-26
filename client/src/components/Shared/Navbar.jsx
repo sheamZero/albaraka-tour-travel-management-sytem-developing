@@ -1,4 +1,4 @@
-import { Menu, X, User, Search, Globe } from "lucide-react";
+import { Menu, X, User, Search, Globe, UserIcon } from "lucide-react";
 import { useState } from "react";
 import Container from "./Container";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -32,12 +32,12 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { user, signOutUser } = useAuth();
     const { isAdmin, isAdminLoading } = useAdmin();
-    
-const dashboardPath = user
-  ? isAdmin
-    ? "/dashboard/admin"
-    : "/dashboard/user"
-  : "/signin";
+
+    const dashboardPath = user
+        ? isAdmin
+            ? "/dashboard/admin"
+            : "/dashboard/user"
+        : "/signin";
 
     const menuItems = [
         { name: "Home", link: "/" },
@@ -124,9 +124,9 @@ const dashboardPath = user
                                                 <BadgeCheckIcon />
                                                 Dashboard
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem className="hover:bg-primary/10 text-base">
-                                                <CreditCardIcon />
-                                                Billing
+                                            <DropdownMenuItem onClick={() => navigate("/my-profile")}  className="hover:bg-primary/10 text-base">
+                                                <UserIcon />
+                                                Profile
                                             </DropdownMenuItem>
                                             <DropdownMenuItem className="hover:bg-primary/10 text-base">
                                                 <BellIcon />
